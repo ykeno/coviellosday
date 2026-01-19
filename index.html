@@ -172,7 +172,7 @@
     const bgShop = new Image(); bgShop.src = 'input_file_2.png';
     const bgGarden = new Image(); bgGarden.src = 'garden.png';
     const bgRomantic = new Image(); bgRomantic.src = 'romantic.png'; 
-    const bgGodField = new Image(); bgGodField.src = 'input_file_3.png'; // NEW: God Field Background
+    const bgGodField = new Image(); bgGodField.src = 'input_file_3.png';
 
     // Characters
     const sprCoviello = new Image(); sprCoviello.src = 'coviello.png';
@@ -458,10 +458,10 @@
     function update() {
         if (state === 'ENDING') return;
         
-        // --- GOD FIELD TRANSITION LOGIC (15 SECONDS) ---
+        // --- GOD FIELD TRANSITION
         if (room === 'LEFT' && player.x < -10) {
             offScreenTimer++;
-            if (offScreenTimer > 900) { // 15 seconds at 60fps
+            if (offScreenTimer > 1200) {  //час для телепорту ~ 17 сек
                 room = 'GOD_FIELD';
                 player.x = 300;
                 offScreenTimer = 0;
@@ -474,7 +474,7 @@
             }
         } else if (room === 'GOD_FIELD' && (player.x < -10 || player.x > 610)) {
             offScreenTimer++;
-            if (offScreenTimer > 900) { // 15 seconds at 60fps
+            if (offScreenTimer > 900) { //час для телепорту 15 сек
                 room = 'LEFT';
                 player.x = 50;
                 offScreenTimer = 0;
