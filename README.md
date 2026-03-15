@@ -2,6 +2,8 @@
 https://ykeno.github.io/coviellosday/
 
 
+оновлюється іноді
+
 ## пасиланя на мої пречудові малюночки які мають відношення до персонажів з цієї гри:
 
 https://imgur.com/a/coviello-285Qqh0
