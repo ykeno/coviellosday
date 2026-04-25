@@ -3,6 +3,7 @@ https://ykeno.github.io/coviellosday/
 
 
 оновлюється іноді
+the web version us always the newest one. the old one's are saved as tags or whatever taht is, i just want a place to save them
 
 ## пасиланя на мої пречудові малюночки які мають відношення до персонажів з цієї гри:
 
