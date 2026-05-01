@@ -699,7 +699,7 @@ function isGrass(x, y) {
         if (room === 'CENTER' && !customer && Date.now() - lastCustTime > 7000) {
             let r = Math.random();
             let role = 'SHOPPER';
-            if (r < 0.9) role = 'RAINBOW'; let collectorChance = (activeRumorEffect === "angry_collector") ? 0.15 : 0.05;
+            if (r < 0.04) role = 'RAINBOW'; let collectorChance = (activeRumorEffect === "angry_collector") ? 0.15 : 0.05;
 if (r < collectorChance) role = 'DEBT'; else if (r < 0.08) role = 'KIREN'; else if (r < 0.08) role = 'JESSE'; else if (r < 0.15) role = 'KIDDO'; else if (r < 0.5) role = 'GAMBLER';
             let skins = [sprCust1, sprCust2, sprCust3];
             let skin = skins[Math.floor(Math.random()*3)];
