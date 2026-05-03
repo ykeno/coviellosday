@@ -3,13 +3,16 @@ https://ykeno.github.io/coviellosday/
 
 
 оновлюється іноді
-the web version us always the newest one. the old one's are saved as tags or whatever taht is, i just want a place to save them
+
+the web version is always the newest one. the old one's are saved as tags or whatever taht is, i just want a place to save them
 
 ## пасиланя на мої пречудові малюночки які мають відношення до персонажів з цієї гри:
 
 https://imgur.com/a/coviello-285Qqh0
 
-https://imgur.com/a/annie-kirens-hat-with-mithros-looking-misteriously-cuz-hes-bad-muhahaha-azW1jRD
+https://imgur.com/a/2vBkVVz
+
+https://imgur.com/a/jDeaaoe
 
 https://imgur.com/a/cuties-patooties-bNGemfR
 
