@@ -6,19 +6,16 @@ https://ykeno.github.io/coviellosday/
 
 the web version is always the newest one. the old one's are saved as tags or whatever taht is, i just want a place to save them
 
+
 ## пасиланя на мої пречудові малюночки які мають відношення до персонажів з цієї гри:
 
-https://imgur.com/a/coviello-285Qqh0
+https://imgur.com/IVeiY7L
+
+https://imgur.com/a/nBN71UJ
 
 https://imgur.com/a/2vBkVVz
 
 https://imgur.com/a/jDeaaoe
-
-https://imgur.com/a/cuties-patooties-bNGemfR
-
-https://imgur.com/a/kiren-kiren-im-cookie-kiren-RFOAOEk
-
-https://imgur.com/a/bybTV1D
 
 https://imgur.com/a/me-when-ZG73y1E
 
