@@ -14,9 +14,9 @@ let fortuneActive = false;
 let currentFortuneCard = null;
 let fortuneCorrectIdx = 0;
 
-let gold = 500, inventory = [], room = 'CENTER', state = 'WALK';
+let gold = 100, inventory = [], room = 'CENTER', state = 'WALK';
 let casinoUnlocked = false;
-let elionSat = 30, visitorCount = 18;
+let elionSat = 30, visitorCount = 0;
 let lastCustTime = Date.now(), lastFlowerTime = Date.now(), keys = {};
 const player = { x: 300, y: 450, color: '#4a6fa5', isMoving: false, speed: 4 };
 let customer = null, flowers = [], elionGhost = null, explosionEffect = null;
@@ -27,10 +27,10 @@ let tarotDeck = [];
 let selectedTarotCards = [];
 let tarotRevealIndex = 0;
 
-
+//elie slide in when elionvacation
 let elionX = 700; // Starts off-screen to the right
 let elionTargetX = 500; // Where he stops in the Bazaar
-let elionY = 300;
+let elionY = 400;
 
 // RUMORS
 let lastRumorChangeTime = Date.now();
@@ -195,7 +195,7 @@ sprReceptionist.src = 'assets/images/receptionist.png';
 let journalOpen = false;
 let journalTab = 'characters'; // or 'tutorial'
 let charPageIndex = 0;
-const TOTAL_CHARACTERS = 10;
+const TOTAL_CHARACTERS = 14;
 let metCharacters = new Set(['COVIELLO']); // Coviello is always met
 
 //Journal Images
