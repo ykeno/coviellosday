@@ -220,247 +220,456 @@
         <div id="tarot-display" style="font-size: 24px; color: #ffd700; margin: 15px 0; font-weight: bold;"></div>
         <div id="fortune-options" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
+    <script>
+    const translations = {
+    t: {
+        en: {
+            hint: "Press [E] or [Enter]",
+            rooms: { CENTER: "BAZAAR", LEFT: "SHOP", RIGHT: "ELION'S PILLOWS", GARDEN: "GARDEN", ROMANTIC: "MOONLIGHT", GOD_FIELD: "VOID", CASINO_PATH: "THE BACK ALLEY", CASINO_INTERIOR: "THE OASIS CASINO" },
+            perks: { tired: "💤 Tired", happy: "⚡ Happy", gilded: "💰 Gilded Tongue", oracle: "👁️ Oracle's Help" },
+            ui: { leave: "Leave", exit: "Exit", back: "Back", next: "Next", thanks: "Thanks!", buy: "Buy", alright: "Alright", clothes: "Clothes", items: "Items" },
+            journal: { read: "Read Board" },
+            misc: {
+                elionVacation: "'Cov, my brain is melting from all these people. I'm going to sleep in the garden. You take over the tarot readings at the stall. Good luck!'",
+                bulletinBoard: "BULLETIN BOARD",
+                gamblerLabel: "GAMBLER",
+                merchantGreeting: "'Hello. What do you wish to buy?'",
+                shopperLines: (profit) => [
+                    `'These spices... they smell like the mountains of my childhood. I'll pay ${profit} gold for the whole jar.'`,
+                    `'This fabric is woven so tightly! It will make a fine cloak. Here, ${profit} gold for your skill.'`,
+                    `'I've looked all over the bazaar, but your goods are the finest. Please, take this ${profit} gold.'`,
+                    `'A rare find indeed! I didn't expect to see such quality today. Here is ${profit} gold.'`,
+                    `'I suppose this will suffice. Here is ${profit} gold.'`,
+                    `'Your saffron is the best out of here, Coviello. Take this ${profit} gold.'`,
+                    `'This necklace looks ancient! Please, take this ${profit} gold.'`,
+                    `'Whatever this is, it smells amazing. Here is your ${profit} gold.'`,
+                    `'She will be so happy... Thank you and here is your ${profit} gold.'`,
+                    `'I'll buy this small trinket. Here is ${profit} gold.'`,
+                    `'This thing looks so cool, damn... There you go, ${profit} gold'`
+                ],
+                elionIdleLines: [
+                    "'Ah, Coviello... my favorite distraction. What is it?'",
+                    "'The moon is low, but my eyelids are lower... What do you want?'",
+                    "'You smell like bazaar dust and ambition. It's... a grounding scent.'",
+                    "'Did you hear the bazaar gossip? Apparently, someone tried to pay with lead painted gold.'",
+                    "'Careful where you step, Coviello. I'm testing a new luck charm on the floor.'",
+                    "'Quit stealing my clients, you little devil.'",
+                    "'I can feel you staring. What do you want?'",
+                    "'The sun is bright, but your face is brighter... wait, that came out wrong.'",
+                ],
+                elionColdLine: "'My magic is cold today, Coviello. Don't ask for much.'",
+                elionChatLines: [
+                    "'The stars whispered your name earlier. Or maybe it was just a draft.'",
+                    "'The bazaar sounds busy today.'",
+                    "'It's so nice to rest in the pillows. Wish you could join, lol.'",
+                    "'You're like a persistent little beetle. Always scurrying about for coin.'",
+                    "'I could fix your luck with a spell, but the ingredients are all the way across the room... so, no.'",
+                    "'Coviello, why don't we have dinner with Marien? My hands yearn for artefacts rather than a frying pan today.'",
+                    "'The Merchant's 'rare tea' is just dried grass. Don't tell him I know.'",
+                    "'I wonder how's Kiren doing... This much stress can't be good for him.'",
+                    "'Oh dear Coviello! My hat is wet from the rain. Throw it on the window, please.'",
+                    "'Profit is the sun that never sets in this bazaar, huh? How greedy of him. Not that you're better.'",
+                    "'Magic is just a shortcut for people who don't want to walk. I've taken many shortcuts today.'",
+                    "'Did you check your journal? Whisper [J] and it shall appear.'",
+                    "' ;) '"
+                ]
+            },
+            fortune: {
+                title: "FORTUNE READING",
+                prompt: "Customer: 'Tell me... what does my card mean?'",
+                success: (profit) => `'Incredible! That interpretation is so accurate! Here is ${profit} gold!'`,
+                failure: (penalty) => `'That makes zero sense... You have no idea what you're doing! Give me back ${penalty} gold!'`,
+                goodbye: "Goodbye"
+            },
 
-    <script src="translations/strings.js"></script>
-    <script src="assets.js"></script>
-    <script src="events.js"></script>
-    <script src="game.js"></script>
-</body>
+            roles: { shopper: "SHOPPER", gambler: "GAMBLER", debt: "COLLECTOR", kiddo: "KIDDO", kiren: "KIREN", jesse: "JESSE", rainbow: "RAINBOW", fortune: "FORTUNE SEEKER" },
+            radio: { name: "OLD RADIO", off: "The radio hums quietly. It looks very old.", on: "Currently playing: Track ", btnOn: "Turn On", btnOff: "Turn Off", btnNext: "Next Track" },
+            kiddo: { name: "KIDDO", ask: "'Mister, mister! Have you seen the Enchanted Candy at the shop? Can you get me one? Pleeease?'", give: "Hand over candy", refuse: "I don't have any candy.", thanks: "'WOW! It really is magic! Thank you!'", skip: "She skips away.", meanie: "'MEANIE! I'M TELLING THE WITCH GUY YOU'RE A SCAMMER.'" },
+            collector: { name: "COLLECTOR", tax: "'Bazaar protection tax: 100 Gold. Don't make this difficult, Coviello.'", pay: "Pay 100G", refuse: "Refuse to pay.", wait: "Understood." },
+            elion: {
+                name: "ELION",
+                angry: "'Coviello! I heard you were scamming a child! I'm taking my magic back until you prove you've changed.'",
+                explain: "Wait, I can explain!",
+                cold: "'My magic is cold today, Coviello. Don't ask for much.'",
+                chatBtn: "Chat more", goldBtn: "Ask Gold", giftBtn: "Give Gift",
+                noMagic: "'I have no energy. My heart is too cold right now.'",
+                rich: "'You still have coin, Cov. Save my magic for when you're truly broke.'",
+                giveGold: "'*Sigh*... I suppose I can spare some magic for you. Here.'",
+                stayCozy: "Stay cozy.",
+                giftResponse: (item) => `'A ${item}? Thank you dearly.'`,
+            },
+            merchant: { name: "THE MERCHANT", buyBtn: (n, c) => `${n} (${c}G)`, noGold: "'No gold!'", bought: (n) => `'Bought ${n}!'` },
+            bj: { hit: "HIT (H)", stand: "STAND (S)", win: "WIN", lose: "LOSE", draw: "DRAW" },
+            rainbow: { name: "RAINBOW", deck: "'EWWW... What are these cards?? Let's play with my super cool magic Rainbow Deck! ;3'" },
+            jesse: { name: "JESSE", yell: "'YOOO, ELIONNN!! I'M STILL ALIVE AND SOUND! YOUR CARDS ARE TELLIN' F##### BULL###T! HAHA!'", calm: "...Calm down." },
+            kiren: { name: "KIREN", hi: "'Hey! Glad to see the stall doing well. Tell Elion i said hi!'", bye: "Safe travels!" },
+            god: {
+                name: "???",
+                line1: "You have reached the edge of existence, Coviello. Why?",
+                opt1: "I seek truth.",
+                opt2: "I got lost.",
+                line2: "Truth is a heavy burden for a mortal.",
+                line3: "You are not supposed to be here. This is not your story.",
+                line4: "Go back. Do not atempt to prevent what is inevitable.",
+                line5: "Remember. I am always watching."
+            },
+            ending: {
+                e1: "'I finally understand why you love this view so much, Coviello.'",
+                c1: "'It's not just the view. It's the peace... the kind I only find when I'm with you.'",
+                e2: "'You're so stubborn. All those flowers and gifts... I suppose I should reward you.'",
+                c2: "'I love you, Elie.'",
+                e3: "'...I love you too.'",
+                c3: "'Huh?'",
+                e4: "'Don't make me say it again, it's exhausting.'",
+                fin: "The End"
+            },
+            rumors: [
+                { text: "Rumor: A wealthy Sultan is visiting the bazaar!", effect: "rich_shoppers" },
+                { text: "Rumor: The tax collector is in a foul mood today...", effect: "angry_collector" },
+                { text: "Rumor: Blue lilies, every witch's favorite flowers, are blooming.", effect: "flower_boost" },
+                { text: "Rumor: Magical rainbows have been spotted near the oasis.", effect: "rainbow_luck" },
+                { text: "Rumor: Aggressive punk boy was seen arguing with a cactus again.", effect: "none" },
+                { text: "Rumor: Someone saw a shadow moving in the Void... Creepy.", effect: "none" },
+                { text: "Rumor: The Merchant is having a sale on 'slightly' used magic rugs.", effect: "none" },
+                { text: "Rumor: Kiren is looking for a map to a city made of gold.", effect: "none" }
+            ],
 
-</html><!DOCTYPE html>
-<html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coviello's Day</title>
-    <style>
-        :root {
-            --gold: #ffd700;
-            --parchment: #fffdf0;
-            --border: #3d251e;
-            --purple: #9b59b6;
-            --leaf: #4a7c44;
+            //CASINO
+
+            casino: {
+                sign: "A sign on the door reads: 'High Rollers Only. 500G Entry Fee.'",
+                locked: "'You don't have enough gold, Cov. Come back when you're richer.'",
+                welcome: "The heavy doors creak open. The air smells like expensive perfume and ozone."
+            },
+            casinoShop: {
+                name: "CASINO RECEPTION",
+                welcome: "'Welcome to the Oasis, sir. We offer exclusive luxury items for our high-rollers. Interested?'",
+                radioName: "Deluxe Radio",
+                radioDesc: "Unlocks 3 hidden premium tracks (Tracks 8-10).",
+                bought: "'A wise investment. Your new radio has been delivered to your stall.'",
+                alreadyOwned: "'You already possess our finest model, sir.'",
+                hatName: "Hat Outfit",
+                gamblerName: "Gambler Outfit",
+                boughtSkin: "'Excellent choice. Your new outfit has been placed in your closet.'"
+            },
+            closet: {
+                name: "CLOSET",
+                desc: "Choose your outfit.",
+                DEFAULT: "Default",
+                HAT: "Hat Outfit",
+                GAMBLER: "Gambler Outfit"
+            },
+
+            tarot: {
+                name: "THE CARDS",
+                prompt: "Stand at the table for a reading.",
+                readingName: "ELION'S TAROT",
+                was: "What was",
+                is: "What is",
+                maybe: "What may be",
+                end: "'The cards have settled, and so shall I. My pillows are calling, Cov.'",
+                deck: [
+                    { name: "THE FOOL", desc: "A step into the unknown, Cov. Keep moving, run blindly, but remember the risks.", color: "#c7bc8b" },
+                    { name: "THE MAGICIAN", desc: "Take care of your inner world, and the outer world will follow. This reminds me of someone...", color: "#b07a7a" },
+                    { name: "THE HIGH PRIESTESS", desc: "Intuition. Listen to your heart. Not everything needs to be said out loud.", color: "#7a84b0" },
+                    { name: "THE EMPRESS", desc: "Growth, care, and quiet strength. What you nurture will answer you in time.", color: "#87a38a" },
+                    { name: "THE EMPEROR", desc: "Order and control. Power is useful, but it always comes at a cost.", color: "#a88e72" },
+                    { name: "THE HIEROPHANT", desc: "Tradition has its place. Some paths are followed because they work, not because they are easy.", color: "#8c8279" },
+                    { name: "THE LOVERS", desc: "Love for oneself and one’s surroundings. How interesting...", color: "#ad8793" },
+                    { name: "THE WHEEL OF FORTUNE", desc: "Things change whether you like it or not. Luck turns, and it never asks permission.", color: "#a38e6f" },
+                    { name: "THE HERMIT", desc: "Time alone brings answers. Not fast, not easily, but they come.", color: "#8a8a8a" },
+                    { name: "THE STAR", desc: "Hope is quiet, Cov. It doesn’t shout, but it’s enough to keep you moving.", color: "#779ea3" },
+                    { name: "THE MOON", desc: "Things are not as clear as they seem. Trust your instincts, but question them too.", color: "#747f85" },
+                    { name: "THE SUN", desc: "Clarity and truth. Everything is out in the open now—whether you’re ready or not.", color: "#c7ac7d" },
+                    { name: "JUSTICE", desc: "Everything has consequences, Cov. Not always right away, but the bill always comes.", color: "#b0a07a" },
+                    { name: "THE HANGED MAN", desc: "Sometimes the only way forward is to stop. To look at things from a different angle, even if it’s uncomfortable.", color: "#7a8fb0" },
+                    { name: "DEATH", desc: "Endings are inevitable. They only make room for something new.", color: "#6f6f6f" },
+                    { name: "TEMPERANCE", desc: "Balance isn’t given, it’s maintained. Extremes always demand a price.", color: "#8fb0a0" },
+                    { name: "THE DEVIL", desc: "Temptations, fears, and sins. Money makes the world go round~", color: "#8a6f7a" },
+                    { name: "THE TOWER", desc: "What seemed solid is crumbling. Find a new path.", color: "#a36f6f" },
+                    { name: "JUDGEMENT", desc: "The moment comes to answer for your choices. There’s no avoiding it now.", color: "#9a8fb0" },
+                    { name: "THE WORLD", desc: "The cycle is complete. Absolute harmony. You’ve come further than you thought, but this isn’t the end.", color: "#8fa38f" }
+                ],
+
+            },
+
+            fortune: {
+                title: "FORTUNE READING",
+                prompt: "Customer: 'Tell me... what does my card mean?'",
+                success: (profit) => `'Incredible! That interpretation is so accurate! Here is ${profit} gold!'`,
+                failure: (penalty) => `'That makes zero sense for my business... Give me back ${penalty} gold!'`,
+                goodbye: "Goodbye",
+                deck: [
+                    { name: "THE FOOL", desc: "A risky new venture. Well, the name speaks for itself. Keep an eye on your wallet, friend!", color: "#c7bc8b" },
+                    { name: "THE MAGICIAN", desc: "Um... Your inner world is important! It’s essential to think.", color: "#b07a7a" },
+                    { name: "THE HIGH PRIESTESS", desc: "Intuition and secret knowledge. Listen to your heart.", color: "#7a84b0" },
+                    { name: "THE EMPRESS", desc: "Growth and harvest! Something good is coming soon.", color: "#87a38a" },
+                    { name: "THE EMPEROR", desc: "Control and power. Beware of thieves!", color: "#a88e72" },
+                    { name: "THE HIEROPHANT", desc: "Traditions and old methods. The cards say you should stay where you are.", color: "#8c8279" },
+                    { name: "THE LOVERS", desc: "Oh wow... this means love or a delightful encounter. Good luck!", color: "#ad8793" },
+                    { name: "THE WHEEL OF FORTUNE", desc: "Luck. No one knows if your plans will work out, but it’s always worth a try.", color: "#a38e6f" },
+                    { name: "THE HERMIT", desc: "Loneliness... I think you should limit your contact with the world.", color: "#8a8a8a" },
+                    { name: "THE STAR", desc: "Hope for a profitable week. Or just a wonderful day!", color: "#779ea3" },
+                    { name: "THE MOON", desc: "A secret—or perhaps a deception... Be careful.", color: "#747f85" },
+                    { name: "THE SUN", desc: "This means the truth. Eventually, everything will be revealed.", color: "#c7ac7d" },
+                    { name: "JUSTICE", desc: "Everything has consequences. You or someone you know will soon pay the price.", color: "#b0a07a" },
+                    { name: "THE HANGED MAN", desc: "It means... um... a change. It means a change or a different perspective.", color: "#7a8fb0" },
+                    { name: "DEATH", desc: "The end. Not necessarily a bad one. Just the end of something old.", color: "#6f6f6f" },
+                    { name: "TEMPERANCE", desc: "Balance... Yes, just balance. Everything must be equal.", color: "#8fb0a0" },
+                    { name: "THE DEVIL", desc: "Are you a sinner? You'd better stop. Is your foe a sinner? Let them continue and they shall pay!", color: "#8a6f7a" },
+                    { name: "THE TOWER", desc: "Everything is collapsing. Let it crash. Look for a different path.", color: "#a36f6f" },
+                    { name: "JUDGEMENT", desc: "The time has come to account for your actions.", color: "#9a8fb0" },
+                    { name: "THE WORLD", desc: "This one is a wonderful card. You’ve achieved what you wanted or will achieve it soon. Congrats!", color: "#8fa38f" }
+                ],
+            },
+
+
+
+
+        },
+        ua: {
+            hint: "Натисніть [E] або [Enter]",
+            rooms: { CENTER: "БАЗАР", LEFT: "КРАМНИЦЯ", RIGHT: "ПОКОЇ ЕЛІОНА", GARDEN: "САД", ROMANTIC: "МІСЯЧНЕ СЯЙВО", GOD_FIELD: "ПОРОЖНЕЧА", CASINO_PATH: "ЗАКОУЛОК", CASINO_INTERIOR: "КАЗИНО ОАЗИС" },
+            perks: { tired: "💤 Втомлений", happy: "⚡ Щасливий", gilded: "💰 Красномовство", oracle: "👁️ Допомога Оракула" },
+            roles: { shopper: "ПОКУПЕЦЬ", gambler: "ГРАВЕЦЬ", debt: "ЗБИРАЧ", kiddo: "ДИТИНА", kiren: "КІРЕН", jesse: "ДЖЕССІ", rainbow: "РЕЙНБОУ", fortune: "ШУКАЧ ДОЛІ" },
+            ui: { leave: "Піти", exit: "Вихід", back: "Назад", next: "Далі", thanks: "Дякую!", buy: "Купити", alright: "Гаразд", clothes: "Одяг", items: "Речі" },
+            journal: { read: "Прочитати дошку" },
+            misc: {
+                elionVacation: "'Ков, мій мозок плавиться від усіх цих людей. Я йду по справах. Візьми на себе ворожіння якщо хочеш. Успіхів!'",
+                bulletinBoard: "ДОШКА ОГОЛОШЕНЬ",
+                gamblerLabel: "ГРАВЕЦЬ",
+                merchantGreeting: "'Вітаю. Хочеш щось купити?'",
+                shopperLines: (profit) => [
+                    `'Ці спеції... вони пахнуть горами мого дитинства. Я заплачу ${profit} золота за всю банку.'`,
+                    `'Ця тканина так щільно виткана! З неї вийде чудовий плащ. Ось, ${profit} золота за твою майстерність.'`,
+                    `'Я обійшов весь базар, але ваші товари найкращі. Будь ласка, візьміть ці ${profit} золота.'`,
+                    `'Справді рідкісна знахідка! Не сподівався побачити сьогодні таку якість. Тримай ${profit} золота.'`,
+                    `'Гадаю, це згодиться. Твої ${profit} золота.'`,
+                    `'Твій шафран найкращий з усіх, що тут є, Ков'єлло. Тримай ${profit} золота.'`,
+                    `'Це намисто виглядає старовинним! Будь ласка, візьми ці ${profit} золота.'`,
+                    `'Що б це не було, воно пахне пречудово. Ось вам ${profit} золота.'`,
+                    `'Вона буде така щаслива... Дякую, ось вам ${profit} золота.'`,
+                    `'Я куплю цю дрібничку. Ось ${profit} золота.'`,
+                    `'Ця річ виглядає так круто, чорт... Ось ваші, ${profit} золота.'`
+                ],
+                elionIdleLines: [
+                    "'А, Ков'єлло... мій любий друже. Щось трапилось?'",
+                    "'Місяць сьогоні низько, проте мої повіки нижче... Ти щось хотів?'",
+                    "'Ти пахнеш пилом базару та амбіціями. Це... заземлюючий аромат.'",
+                    "'Ти чув базарні плітки? Кажуть хтось намагався заплатити свинцем пофарбованим под золото.'",
+                    "'Дивись під ноги Ков'єлло. Я випробовую нові талісмани.'",
+                    "'Перестань красти моїх клієнтів, ти чортюга.'",
+                    "'Я відчуваю твій погляд. Чого ти хочеш?'",
+                    "'Сонце сяє, але твоє обличчя ще ясніше... добре, ні, це не те що я хотів сказати.'"
+                ],
+                elionColdLine: "'Моя магія зараз холодна, Ков'єлло. Не проси багато.'",
+                elionChatLines: [
+                    "'Зірки шепотіли твоє ім'я раніше... Або це був просто вітер.'",
+                    "'Базар сьогодні звучить шумно.'",
+                    "'Так приємно відпочивати на подушках. Шкода ти не можеш приєднатись, лол.'",
+                    "'Ти ніби настирливвий малий джміль. Постійно літаєш за грошима.'",
+                    "'Я міг би виправити твою удачу заклинанням, але інгредієнти далеееко в підвалі... тому ні.'",
+                    "'Ков'єлло, чому б нам не поїсти в Маріен? Мої руки прагнуть артефактів, а не сковорідок сьогодні.'",
+                    "'Рідкісний чай Торговця — це просто висушена трава. Не кажи йому що я знаю.'",
+                    "'Цікаво, як там Кірен... Стільки стресу не може бути корисним.'",
+                    "'Ох, любий Ков'єлло! Мій капелюх мокрий від дощу. Поклади його на вікно, будь ласка.'",
+                    "'Прибуток — це сонце, що ніколи не сідає на цьому базарі, га? Наскільки ж він жадібний. Не те, щоб ти кращий.'",
+                    "'Магія це просто рятунок для людей які не хочуть ходити. А мені дуже не хочеться ходити сьогодні.'",
+                    "'Чи ти перевіряв свій журнал? Шепни [J] і він з'явиться.'",
+                    "' ;) '"
+                ]
+            },
+            fortune: {
+                title: "ВОРОЖІННЯ",
+                prompt: "Клієнт: 'Скажи мені... що означає моя карта?'",
+                success: (profit) => `'Неймовірно! Це тлумачення дуже точне! Ось ${profit} золотих!'`,
+                failure: (penalty) => `'Це повна нісенітниця... Ти не маєш гадки, що робиш! Поверни ${penalty} золотих!'`,
+                goodbye: "До побачення"
+            },
+            radio: { name: "СТАРЕ РАДІО", off: "Радіо тихо гуде. Воно виглядає дуже старим.", on: "Зараз грає: Трек ", btnOn: "Увімкнути", btnOff: "Вимкнути", btnNext: "Наступний" },
+            kiddo: { name: "ДИТИНА", ask: "'Пане, пане! Ви бачили чарівні цукерки в крамниці? Купите мені одну? Будь лаааска!'", give: "Віддати цукерку", refuse: "У мене немає цукерок.", thanks: "'ОГО! Вони справді чарівні! Дякую!'", skip: "Вона втікає, підстрибуючи.", meanie: "'ЖАДЮГА! Я розкажу твоїй відьмі, що ти шахрай!'" },
+            collector: { name: "ЗБИРАЧ", tax: "'Податок за використовування базару: 100 золотих. Не ускладнюй це, Ков'єлло.'", pay: "Сплатити 100З", refuse: "Відмовитись.", wait: "Зрозумів." },
+            elion: {
+                name: "ЕЛІОН",
+                angry: "'Ков'єлло! Як ти міг обікрасти бідну дитину?! Я забираю свою магію, поки ти не доведеш, що змінився.'",
+                explain: "Чекай, я поясню!",
+                cold: "'Моя магія сьогодні холодна, Ков'єлло. Не проси багато.'",
+                chatBtn: "Поговорити", goldBtn: "Просити золота", giftBtn: "Дати дарунок",
+                noMagic: "'У мене немає сил. Моє серце зараз занадто холодне.'",
+                rich: "'У тебе ще є монети, Ков. Бережи мою магію коли ти справді не матимеш копійки.'",
+                giveGold: "'Ехх... Гадаю, я можу виділити тобі трохи магії. Тримай.'",
+                stayCozy: "Відпочивай.",
+                giftResponse: (item) => `'${item}? Як мило з твого боку.'`,
+            },
+            merchant: { name: "ТОРГОВЕЦЬ", buyBtn: (n, c) => `${n} (${c}З)`, noGold: "'Немає золота!'", bought: (n) => `'Куплено: ${n}!'` },
+            bj: { hit: "ЩЕ (H)", stand: "ДОСИТЬ (S)", win: "ПЕРЕМОГА", lose: "ПРОГРАШ", draw: "НІЧИЯ" },
+            rainbow: { name: "РЕЙНБОУ", deck: "'ФЕЕЕ... Що це за карти?? Давайте зіграємо моєю супер-крутою магічною Веселковою Колодою! ;3'" },
+            jesse: { name: "ДЖЕССІ", yell: "'ЙОУ, ЕЛІОН! Я ВСЕ ЩЕ ЖИВИЙ І ЗДОРОВИЙ, ЕЛІОН!!1!1 ТВОЇ КАРТИ ЦЕ Ї##### #####'", calm: "...Заспокойся." },
+            kiren: { name: "КІРЕН", hi: "'Гей! Радий бачити, що справи йдуть добре. Передавай Еліону привіт!'", bye: "Щасливої дороги!" },
+            god: {
+                name: "???",
+                line1: "Ти досяг краю буття, Ков'єлло. Чому?",
+                opt1: "Шукаю істину.",
+                opt2: "Я заблукав.",
+                line2: "Істина — важка ноша для смертного.",
+                line3: "Ти не повинен бути тут. Це не твоя повість.",
+                line4: "Повертайся. Не намагайся протидіяти неминучому.",
+                line5: "Пам'ятай. Я завжди спостерігаю."
+            },
+            ending: {
+                e1: "'Тепер я розумію, чому ти так любиш цей краєвид, Ков'єлло.'",
+                c1: "'Це не тільки краєвид. Це спокій... який я знаходжу лише поруч із тобою.'",
+                e2: "'Ти такий впертий. Всі ці квіти і дарунки... Гадаю, я маю тебе винагородити.'",
+                c2: "'Я кохаю тебе, Елі.'",
+                e3: "'...Я теж тебе кохаю.'",
+                c3: "'Га?'",
+                e4: "'Не змушуй мене повторювати, це виснажує.'",
+                fin: "Кінець"
+            },
+            rumors: [
+                { text: "Плітка: Всевідомий Султан відвідує базар!", effect: "rich_shoppers" },
+                { text: "Плітка: Податковий збирач сьогодні в поганому настрої...", effect: "angry_collector" },
+                { text: "Плітка: Цвітуть блакитні лілії, улюблені квіти кожної відьми.", effect: "flower_boost" },
+                { text: "Плітка: Біля оазису помічали магічні веселки.", effect: "rainbow_luck" },
+                { text: "Плітка: Агресивний панк знову сварився з кактусом.", effect: "none" },
+                { text: "Плітка: Хтось бачив тінь, що рухається в Порожнечі... Страшно.", effect: "none" },
+                { text: "Плітка: Торговець влаштовує розпродаж 'трохи' використаних магічних коврів.", effect: "none" },
+                { text: "Плітка: Кірен шукає карту міста зробленого з золота.", effect: "none" }
+            ],
+
+            // casino
+
+
+            casino: {
+                sign: "Написано на дверях: 'Тільки для великих гравців. Вхід — 500 золотих.'",
+                locked: "'У тебе замало золота, Ков. Повертайся, коли розбагатієш.'",
+                welcome: "Важкі двері відчиняються. Повітря пахне дорогими парфумами та озоном."
+            },
+
+            casinoShop: {
+                name: "РЕЦЕПЦІЯ КАЗИНО",
+                welcome: "'Вітаємо в Оазисі, пане. Ми пропонуємо ексклюзивні речі для наших особливих гостей. Вас щось цікавить?'",
+                radioName: "Люкс-Радіо",
+                radioDesc: "Відкриває 3 приховані преміум-треки (Треки 8-10).",
+                bought: "'Мудре вкладення. Ваше нове радіо вже доставлено до вашої лавки.'",
+                alreadyOwned: "'Ви вже володієте нашою найкращою моделлю, пане.'",
+                hatName: "Капелюх",
+                gamblerName: "Одяг гравця",
+                boughtSkin: "'Чудовий вибір. Ваш новий одяг покладено у шафу.'"
+            },
+            closet: {
+                name: "ШАФА",
+                desc: "Виберіть свій одяг.",
+                DEFAULT: "Звичайний",
+                HAT: "Капелюх",
+                GAMBLER: "Одяг гравця"
+            },
+
+
+
+
+            tarot: {
+                name: "КАРТИ",
+                prompt: "Стань біля столу для ворожіння.",
+                readingName: "ТАРО ЕЛІОНА",
+                was: "Що було",
+                is: "Що є",
+                maybe: "Що може бути",
+                end: "'Карти заспокоїлись, і я теж заспокоюсь. Подушки кличуть мене, Ков.'",
+                deck: [
+                    { name: "ДУРЕНЬ", desc: "Крок у невідоме, Ков. Рухайся вперед, біжи наосліп, проте пам'ятай про ризики.", color: "#c7bc8b" },
+                    { name: "МАГ", desc: "У тебе вже є все необхідне. Піклуйся про внутрішній світ, і зовнішній піде слідом. Когось це мені нагадує...", color: "#b07a7a" },
+                    { name: "ВЕРХОВНА ЖРИЦЯ", desc: "Інтуїція. Слухай серця. Не все потрібно вимовляти вголос.", color: "#7a84b0" },
+                    { name: "ІМПЕРАТРИЦЯ", desc: "Зростання, турбота і тиха сила. Те, що ти плекаєш, з часом дасть відповідь.", color: "#87a38a" },
+                    { name: "ІМПЕРАТОР", desc: "Порядок і контроль. Влада корисна, але завжди має свою ціну.", color: "#a88e72" },
+                    { name: "ІЄРОФАНТ ", desc: "Традиції мають своє місце. Деякі шляхи обирають не тому, що вони легкі, а тому, що вони працюють.", color: "#8c8279" },
+                    { name: "ЗАКОХАНІ", desc: "Любов до себе та оточення. Як цікаво...", color: "#ad8793" },
+                    { name: "КОЛЕСО ФОРТУНИ", desc: "Все змінюється, хочеш ти цього чи ні. Удача повертається і не питає дозволу.", color: "#a38e6f" },
+                    { name: "ВІДШЕЛЬНИК", desc: "Самотність приносить відповіді. Не швидко і не легко, але вони приходять.", color: "#8a8a8a" },
+                    { name: "ЗІРКА", desc: "Надія тиха, Ков. Вона не кричить, але її достатньо, щоб рухатися далі.", color: "#779ea3" },
+                    { name: "МІСЯЦЬ", desc: "Ілюзія та таємниця. Не все є таким, яким здається у напівтемряві.", color: "#747f85" },
+                    { name: "СОНЦЕ", desc: "Ясність і правда. Тепер усе відкрите — готовий ти до цього чи ні.", color: "#c7ac7d" },
+                    { name: "СПРАВЕДЛИВІСТЬ", desc: "Усе має наслідки. Не завжди одразу, але рахунок приходить.", color: "#b0a07a" },
+                    { name: "ПОВІШЕНИЙ", desc: "Іноді єдиний вихід — зупинитися. Подивитися на все з іншого боку, навіть якщо це незручно.", color: "#7a8fb0" },
+                    { name: "СМЕРТЬ", desc: "Кінець неминучий. Але він лише звільняє місце для чогось нового.", color: "#6f6f6f" },
+                    { name: "ПОМІРНІСТЬ", desc: "Баланс — це не даність, а робота. Крайнощі завжди мають свою ціну.", color: "#8fb0a0" },
+                    { name: "ДИЯВОЛ", desc: "Спокуси, страхи та гріхи. Гроші дзвенять, Ков'єлло.", color: "#8a6f7a" },
+                    { name: "ВЕЖА", desc: "Те, що здавалося міцним, руйнується. Шукай нову дорогу.", color: "#a36f6f" },
+                    { name: "СУД", desc: "Настає момент відповісти за свої вибори. Уникати більше не вийде.", color: "#9a8fb0" },
+                    { name: "СВІТ", desc: "Цикл завершено. Абсолютна гармонія. Ти дійшов далі, ніж думав, але це не кінець дороги.", color: "#8fa38f" }
+                ],
+            },
+
+
+            fortune: {
+                title: "ВОРОЖІННЯ",
+                prompt: "Клієнт: 'Скажи мені... що означає моя карта?'",
+                success: (profit) => `'Неймовірно! Це дуже практична порада! Ось ${profit} золотих!'`,
+                failure: (penalty) => `'Це жодного стосунку не має до моїх справ... Поверни ${penalty} золотих!'`,
+                goodbye: "До побачення",
+                deck: [
+                    { name: "ДУРЕНЬ", desc: "Ризикована нова справа. Назва сама за себе говорить. Пильнуй гаманець сьогодні, друже.", color: "#c7bc8b" },
+                    { name: "МАГ", desc: "Емм... Внутрішній світ це важливо! Важливо думати!", color: "#b07a7a" },
+                    { name: "ВЕРХОВНА ЖРИЦЯ", desc: "Інтуїція та прихована інформація. Слухайтесь серця.", color: "#7a84b0" },
+                    { name: "ІМПЕРАТРИЦЯ", desc: "Зростання та врожай! Скоро трапиться щось хороше.", color: "#87a38a" },
+                    { name: "ІМПЕРАТОР", desc: "Контроль і влада. Остерігайся грабіжників!", color: "#a88e72" },
+                    { name: "ІЄРОФАНТ ", desc: "Традиції і старі методи. Карти кажуть що варто залишитись там де ви є.", color: "#8c8279" },
+                    { name: "ЗАКОХАНІ", desc: "Охох, це значить любов або чудове знайомство.", color: "#ad8793" },
+                    { name: "КОЛЕСО ФОРТУНИ", desc: "Удача. Ніхто не знає чи вами задумане трапиться але завжди варто спробувати.", color: "#a38e6f" },
+                    { name: "ВІДШЕЛЬНИК", desc: "Самотність... Я гадаю вам варто обмежити контакт зі світом.", color: "#8a8a8a" },
+                    { name: "ЗІРКА", desc: "Надія на прибутковий тиждень. Або просто на чудовий день!", color: "#779ea3" },
+                    { name: "МІСЯЦЬ", desc: "Таємниця а може й обман... Будь обережним", color: "#747f85" },
+                    { name: "СОНЦЕ", desc: "Це значить правда. Згодом усе буде відкрито.", color: "#c7ac7d" },
+                    { name: "СПРАВЕДЛИВІСТЬ", desc: "Усе має наслідки. Ви або ваш знайомий скоро поплатяться.", color: "#b0a07a" },
+                    { name: "ПОВІШЕНИЙ", desc: "Це було... мх... зміна. Це значить зміна і інша перспектива.", color: "#7a8fb0" },
+                    { name: "СМЕРТЬ", desc: "Кінець. Не обов'язково поганий. Просто кінець старого.", color: "#6f6f6f" },
+                    { name: "ПОМІРНІСТЬ", desc: "Баланс... Так, просто баланс. Все має бути рівним.", color: "#8fb0a0" },
+                    { name: "ДИЯВОЛ", desc: "Грішите? Краще перестати. Грішить ваш ворог? Нехай продовжує, це може піти вам на користь.", color: "#8a6f7a" },
+                    { name: "ВЕЖА", desc: "Все руйнується. Нехай падає. Знайдіть іншу дорогу.", color: "#a36f6f" },
+                    { name: "СУД", desc: "Настає момент відповісти за свої вибори.", color: "#9a8fb0" },
+                    { name: "СВІТ", desc: "Це насправді дуже хороша карта. Ви досягли чого мали або скоро досягенете. Вітаю!", color: "#8fa38f" }
+                ]
+            }
+
+
+
         }
-
-        body {
-            background: #000;
-            color: white;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        #game-wrap {
-            position: relative;
-            border: 6px solid var(--border);
-            image-rendering: pixelated;
-        }
-
-        canvas {
-            display: block;
-            background: #000;
-            transition: opacity 1s;
-        }
-
-        #ui-bar {
-            width: 600px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #1a0f0c;
-            border: 4px solid var(--border);
-            border-bottom: none;
-        }
-
-        .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #f0e68c;
-        }
-
-        #blackjack-ui,
-
-        #dialogue-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #2d1b16;
-            border: 6px solid var(--gold);
-            padding: 25px;
-            display: none;
-            pointer-events: auto;
-            text-align: center;
-            width: 400px;
-            z-index: 200;
-        }
-
-        #dialogue-box {
-            background: var(--parchment);
-            color: #222;
-            border: 6px solid var(--border);
-            width: 450px;
-            text-align: left;
-            transition: all 0.2s;
-        }
-
-        #dialogue-box.ending-mode {
-            width: 500px;
-            bottom: 10px;
-            top: auto;
-            transform: translateX(-50%);
-            padding: 15px;
-            border-width: 3px;
-        }
-
-        .card-row {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            min-height: 80px;
-        }
-
-        .card {
-            width: 50px;
-            height: 75px;
-            background: white;
-            color: black;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 24px;
-            border: 3px solid #000;
-        }
-
-        .btn {
-            background: #d2691e;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 15px;
-            font-weight: bold;
-            border-bottom: 4px solid #8b4513;
-            margin: 5px;
-        }
-
-        .btn:hover {
-            background: #ff7f50;
-        }
-
-        .btn:disabled {
-            background: #555;
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .hint {
-            position: absolute;
-            bottom: 80px;
-            width: 100%;
-            text-align: center;
-            font-weight: bold;
-            pointer-events: none;
-            text-shadow: 2px 2px #000;
-            font-size: 20px;
-            color: gold;
-        }
-
-        #perks-display {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            font-size: 12px;
-            color: #aaa;
-            pointer-events: none;
-        }
-
-        .lang-toggle {
-            background: #3d251e;
-            color: #ffd700;
-            border: 2px solid #ffd700;
-            cursor: pointer;
-            padding: 2px 8px;
-            font-family: inherit;
-            font-weight: bold;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- ICONS -->
-    <div id="ui-bar">
-        <div class="stat-item">
-            <canvas id="coinIcon" width="20" height="20"></canvas>
-            <span id="gold-val">100</span>
-        </div>
-        <div class="stat-item">
-            <canvas id="visitorIcon" width="20" height="20"></canvas>
-            <span id="visit-val">0</span>
-        </div>
-        <div style="font-size: 16px; color: #fff; opacity: 0.6;" id="room-name">BAZAAR</div>
-        <div class="stat-item">
-            <canvas id="giftIcon" width="20" height="20"></canvas>
-            <span id="gift-val">0</span>
-            <button class="lang-toggle" onclick="toggleLang()" style="margin-left: 15px;">EN/UA</button>
-        </div>
-    </div>
-
-    <div id="game-wrap">
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
-        <div id="perks-display"></div>
-        <div id="interact-hint" class="hint">Press [E] or [Enter]</div>
-
-        <div id="blackjack-ui">
-            <h2 id="bj-msg" style="color:var(--gold); margin:0;">BLACKJACK</h2>
-            <div id="dealer-hand" class="card-row"></div>
-            <div id="player-hand" class="card-row"></div>
-            <button id="hit-btn" class="btn" onclick="hit()">HIT (H)</button>
-            <button id="stand-btn" class="btn" onclick="stand()">STAND (S)</button>
-        </div>
-
-        <div id="dialogue-box">
-            <div id="diag-name" style="color:var(--purple); font-size: 14px; margin-bottom: 5px; font-weight: bold;">
-            </div>
-            <div id="diag-text" style="font-size: 19px; font-weight: bold; min-height: 60px;"></div>
-            <div id="diag-btns"
-                style="margin-top:20px; text-align:right; border-top: 1px solid #ccc; padding-top: 10px;"></div>
-        </div>
-    </div>
-    <!-- Fortune Reading Minigame UI -->
-    <div id="fortune-ui"
-        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2d1b16; border: 6px solid var(--gold); padding: 25px; display: none; pointer-events: auto; text-align: center; width: 450px; z-index: 200;">
-        <h2 style="color:var(--gold); margin:0;">FORTUNE READING</h2>
-        <p id="fortune-prompt" style="color: white; font-size: 16px;"></p>
-        <div id="tarot-display" style="font-size: 24px; color: #ffd700; margin: 15px 0; font-weight: bold;"></div>
-        <div id="fortune-options" style="display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
+    },
 
 
 
 
 
+    charLore: {
+        'COVIELLO': { en: "A sly merchant trying to make a living in the bazaar.", ua: "Хитрий торговець, що намагається заробити на життя на базарі." },
+        'ELION': { en: "Your neighbour-friend-colleague. The laziest witch in the whole wide world.", ua: "Твій сусід-друг-колега. Найленивіший відьмак на весь білий світ." },
+        'MERCHANT': { en: "Your rival? Or just a businessman? He values gold above all else.", ua: "Конкурент чи просто бізнесмен? Він цінує золото понад усе." },
+        'KIREN': { en: "A wandering friend. He travels the world but always returns to the stall.", ua: "Мандрівний друг. Він подорожує світом, але завжди повертається до лавки." },
+        'JESSE': { en: "A loud punk who thinks magic is a scam. Has some problem with Elion.", ua: "Гучний панк, який вважає магію обманом. Має якісь проблеми з Еліоном." },
+        'KIDDO': { en: "A chaotic child. Give her candy or prepare for a friendship disaster.", ua: "Хаотична дитина. Дай їй цукерку або готуйся до краху дружби." },
+        'RAINBOW': { en: "A magical entity of pure color. Her cards are truly beautiful.", ua: "Магічна сутність із чистих кольорів. Її карти справді прекрасні." },
+        'GOD': { en: "&3/O# ?????????? @js+@", ua: "&3/O# ?????????? @js+@" },
+        'COLLECTOR': { en: "The tax collector. He doesn't care about your stories, only your gold.", ua: "Збирач податків. Його не цікавлять твої історії, лише твоє золото." },
+        'SHOPPER': { en: "A typical citizen looking for spices and fine fabrics.", ua: "Звичайний містянин, що шукає спеції та гарні тканини." },
+        'GAMBLER': { en: "Someone looking to turn a few coins into a fortune at your table.", ua: "Той, хто хоче перетворити кілька монет на багатство за твоїм столом." },
+        'RECEPTIONIST': { en: "Keeps the high rollers in check and the casino running smoothly.", ua: "Стежить за порядком серед великих гравців і безперебійною роботою казино." },
+        'CASINO_DEALER': { en: "Professional, unflappable, and always holding a winning hand.", ua: "Професійний, непохитний і завжди з виграшною рукою." },
+        'FORTUNE': { en: "Curious souls seeking answers in the cards. They pay well for a good reading.", ua: "Допитливі душі, які шукають відповідей у картах. Вони добре платять за ворожіння." }
+    }
 
-
-
-
-<script>
-
-    const canvas = document.getElementById('gameCanvas');
+};
+    </script>
+    <script>
+    // Friendly guard: shows a message instead of a silent blank page if strings.js is missing
+    if (typeof translations === 'undefined') {
+        document.body.innerHTML = '<p style="padding:20px;color:#ffd700">strings.js has not been pasted into index.html yet (search for "PASTE strings.js HERE").</p>';
+        throw new Error('translations is not defined');
+    }
+    </script>
+    <!-- ============ ASSETS (assets.js) ============ -->
+    <script>
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 
@@ -476,9 +685,9 @@ let fortuneActive = false;
 let currentFortuneCard = null;
 let fortuneCorrectIdx = 0;
 
-let gold = 100, inventory = [], room = 'CENTER', state = 'WALK';
+let gold = 500, inventory = [], room = 'CENTER', state = 'WALK';
 let casinoUnlocked = false;
-let elionSat = 30, visitorCount = 0;
+let elionSat = 30, visitorCount = 18;
 let lastCustTime = Date.now(), lastFlowerTime = Date.now(), keys = {};
 const player = { x: 300, y: 450, color: '#4a6fa5', isMoving: false, speed: 4 };
 let customer = null, flowers = [], elionGhost = null, explosionEffect = null;
@@ -723,903 +932,10 @@ function drawIcons() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-    drawIcons();
-canvas.onclick = e => {
-
-    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
-        ctx.clearRect(0, 0, 600, 600);
-
-        if (bgTarotMode.complete) {
-            ctx.drawImage(bgTarotMode, 0, 0, 600, 600);
-        } else {
-            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, 600, 600);
-        }
-
-        const rect = canvas.getBoundingClientRect();
-        const mx = e.clientX - rect.left;
-        const my = e.clientY - rect.top;
-
-        // Only allow clicking in the bottom half
-        if (my > 350) {
-            for (let i = tarotDeck.length - 1; i >= 0; i--) {
-                let c = tarotDeck[i];
-                if (mx > c.x && mx < c.x + c.w && my > c.y && my < c.y + c.h && !c.selected) {
-                    c.selected = true;
-                    selectedTarotCards.push(c);
-
-                    if (selectedTarotCards.length === 3) {
-                        state = 'TAROT_REVEAL';
-                        // Show the dialogue box in the bottom half
-                        const box = document.getElementById('dialogue-box');
-                        box.style.display = 'block';
-                        box.classList.add('ending-mode'); // Use your compact style
-                        nextTarotCard();
-                    }
-                    break;
-                }
-            }
-        }
-        return;
-    }
-
-
-    const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-
-    if (state === 'JOURNAL') {
-        // --- BOOKMARK CLICKS ---
-        // Blue Bookmark (Characters) - Leftmost tab
-        if (mx > 120 && mx < 185 && my > 50 && my < 150) {
-            journalTab = 'characters';
-            charPageIndex = 0;
-        }
-        // Green Bookmark (Tutorial) - Second tab
-        if (mx > 190 && mx < 250 && my > 50 && my < 150) {
-            journalTab = 'tutorial';
-        }
-
-        // --- NAVIGATION ARROWS ---
-        if (journalTab === 'characters') {
-            const discovered = Array.from(metCharacters);
-            // Click Left side of book
-            if (mx > 50 && mx < 150 && my > 200 && my < 450) {
-                charPageIndex = (charPageIndex - 1 + discovered.length) % discovered.length;
-            }
-            // Click Right side of book
-            if (mx > 450 && mx < 550 && my > 200 && my < 450) {
-                charPageIndex = (charPageIndex + 1) % discovered.length;
-            }
-        }
-        return; // Prevent other clicks while journal is open
-    }
-
-    // --- RADIO INTERACTION---
-    const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
-    if (nearRadio && Math.hypot(mx - radioPos.x, my - radioPos.y) < 50) {
-        toggleMusic();
-    }
-
-};
-
-
-// BUTTONS
-window.onkeydown = e => {
-    keys[e.code] = true;
-    const isInteractKey = (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'NumpadEnter');
-
-    // Toggle Journal with J
-    if (e.code === 'KeyJ') {
-        if (state === 'WALK' || state === 'JOURNAL') {
-            toggleJournal();
-        }
-    }
-
-    if (state === 'WALK' && isInteractKey) {
-        e.preventDefault();
-        handleInteraction();
-    }
-
-    // Navigation inside Journal
-    if (state === 'JOURNAL') {
-        if (e.code === 'ArrowRight') { charPageIndex = (charPageIndex + 1) % metCharacters.size; }
-        if (e.code === 'ArrowLeft') { charPageIndex = (charPageIndex - 1 + metCharacters.size) % metCharacters.size; }
-    }
-
-    if (state === 'GOD_READY' && isInteractKey) {
-        e.preventDefault();
-        startGodDialogue();
-    }
-    if (state === 'ENDING' && isInteractKey) {
-        e.preventDefault();
-        advanceEnding();
-    }
-    if (state === 'BJ') {
-        if (e.code === 'KeyH') hit();
-        if (e.code === 'KeyS') stand();
-    }
-};
-window.onkeyup = e => keys[e.code] = false;
-
-
-function checkCollision(nx, ny) {
-    if (state !== 'WALK' && state !== 'GOD_READY') return true;
-
-    // The 'p' is the padding (hitbox size). 
-    // Since Coviello is 60px wide, 20-25px padding makes him look like he has 'weight'.
-    const p = 20;
-
-    if (room === 'CENTER') {
-        // left and right
-        if (nx < p && ny < 200) return true;
-        if (nx > 600 - p && ny < 180) return true;
-
-
-        if (ny > 170 - p && ny < 260 + p && nx > 70 - p && nx < 530 + p) return true; // table centre
-        if (ny > 260 - p && ny < 350 + p && nx > 70 - p && nx < 130 + p) return true; // table left
-        if (ny > 260 - p && ny < 280 + p && nx > 430 - p && nx < 450 + p) return true; // wase
-        if (ny > 260 - p && ny < 350 + p && nx > 470 - p && nx < 530 + p) return true; // table right
-        if (ny > 520 - p && nx > 70 - p && nx < 530 + p) return true; // table down
-
-        // interaction
-        if (customer && customer.state === 'WAIT' && Math.hypot(nx - customer.x, ny - customer.y) < 50) return true;
-
-        // bottom
-        if (ny > 580) return true;
-    }
-
-    if (room === 'RIGHT') {
-        // Top walls
-        if (nx < 140 + p && ny < 110 + p) return true; // lamp
-        if (nx > 160 - p && nx < 450 + p && ny < 70 + p) return true;
-        if (nx > 410 - p && ny < 100 + p) return true; // closet
-        if (nx > 230 - p && nx < 375 + p && ny > 160 - p && ny < 400 + p) return true;  // table
-
-        // elion collision
-        if (elionLocation === 'ROOM_RIGHT' && Math.hypot(nx - 500, ny - 520) < 60) return true;
-
-        // boundaries
-        if (ny > 580) return true;
-        if (nx > 600 - p) return true;
-    }
-
-    if (room === 'LEFT') {
-        if (ny < 200 + p || ny > 580) return true;
-        // counter
-        if (ny < 230 + p && nx > 130 - p && nx < 480 + p) return true;
-        // collision with merchant
-        if (Math.hypot(nx - 300, ny - 260) < 60) return true;
-    }
-
-    if (room === 'GARDEN') {
-        // exit hole down
-        if (ny > 580 && nx > 50 && nx < 500) return false;
-        // borders
-        if (ny < 100 + p || ny > 580 || nx > 580 - p) return true;
-    }
-
-    if (room === 'GOD_FIELD') {
-        if (ny < 300 || ny > 580) return true;
-    }
-
-
-    if (room === 'CASINO_PATH') {
-        const p = 20;
-        // Block the building on the left (Adjusted nx to 230 so door is accessible)
-        if (nx < 230) return true;
-        // Block the top wall area
-        if (ny < 120) return true;
-        // Block the trash can (bottom left)
-        if (nx < 160 && ny > 450) return true;
-        // Block the bottom edge
-        if (ny > 580) return true;
-        return false;
-    }
-
-
-    if (room === 'CASINO_LOBBY') {
-        const p = 20;
-        // collision with receptionist
-        if (Math.hypot(nx - 300, ny - 260) < 60) return true;
-        //counter
-        if (ny < 270 && nx > 100 && nx < 500) return true;
-        //top wall
-        if (ny < 110) return true;
-        //right wall (no exit there)
-        if (nx > 580) return true;
-        // Block left wall EXCEPT for the doorway to the Games Room
-        if (nx < 20 && (ny < 300)) return true;
-        return false;
-    }
-
-    if (room === 'CASINO_GAMES') {
-        const p = 15;
-
-        // dealers
-        if (Math.hypot(nx - 220, ny - 480) < 60) return true;
-        if (Math.hypot(nx - 500, ny - 290) < 60) return true;
-
-        // table bottom
-        if (ny > 299 - p && ny < 400 + p && nx < 280 - p) return true;
-
-        // нижній стілець
-        if (ny > 400 - p && ny < 470 + p && nx > 120 - p && nx < 180 + p) return true;
-
-        // ВЕРХНІЙ СТІЛ
-        if (nx > 350 - p && ny < 280 + p) return true;
-
-        //plant
-        if (ny < 130 + p && nx < 75 + p) return true;
-
-        // верхня стіна
-        if (ny < 110) return true;
-
-        // ліва стіна
-        if (nx < 10) return true;
-
-        // bottom boundary
-        if (ny > 580) return true;
-        return false;
-    }
-
-
-
-
-    return false;
-}
-
-function isGrass(x, y) {
-    // Bulletin Board Area (Top Left)
-    if (x < 220 && y < 220) return false;
-    // Vertical Path (The middle stone road)
-    if (x > 240 && x < 380) return false;
-    // Horizontal Path (The side road)
-    if (y > 140 && y < 250 && x < 300) return false;
-    return true;
-}
-
-function update() {
-
-    // --- INSTANT ENDING CHECK ---
-    if (elionSat >= 100 && state !== 'ENDING' && room !== 'ROMANTIC') {
-        triggerEnding();
-        return;
-    }
-
-    if (state === 'ENDING') return;
-
-    // GOD FIELD TRANSITION (15 SECONDS)
-    if (room === 'LEFT' && player.x < -10) {
-        offScreenTimer++;
-        if (offScreenTimer > 900) { // 15 seconds at 60fps
-            room = 'GOD_FIELD';
-            player.x = 300;
-            offScreenTimer = 0;
-            godSequenceActive = true;
-            godTimer = 0;
-            godForm = 1;
-            godVisible = true;
-            godInteractable = false;
-            state = 'GOD_WAIT';
-        }
-    } else if (room === 'GOD_FIELD' && (player.x < -10 || player.x > 610)) {
-        offScreenTimer++;
-        if (offScreenTimer > 900) { // 15 seconds at 60fps
-            room = 'LEFT';
-            player.x = 50;
-            offScreenTimer = 0;
-        }
-    } else {
-        offScreenTimer = 0;
-    }
-
-    // GOD SEQUENCE LOGIC
-    if (godSequenceActive && state === 'GOD_WAIT') {
-        godTimer++;
-        if (godTimer > 700) { // form 1 stays for 5 seconds
-            godForm = 2;
-            godInteractable = true;
-            state = 'GOD_READY';
-        }
-    }
-
-    //Casinooo
-
-    // --- CASINO TRANSITIONS ---
-    if (room === 'CASINO_LOBBY') {
-        // 1. Walk LEFT to enter the Games Room
-        if (player.x < -15) {
-            room = 'CASINO_GAMES';
-            player.x = 580;
-        }
-        // 2. Walk DOWN to leave the Casino
-        if (player.y > 615) {
-            room = 'CASINO_PATH';
-            player.x = 260; // Appear in front of the door
-            player.y = 260;
-        }
-    }
-    else if (room === 'CASINO_GAMES') {
-        // Walk RIGHT to go back to the Lobby
-        if (player.x > 615) {
-            room = 'CASINO_LOBBY';
-            player.x = 20;
-        }
-    }
-
-    // --- ALLEY TO GARDEN ---
-    else if (room === 'CASINO_PATH') {
-        if (player.x > 615) {
-            room = 'GARDEN';
-            player.x = 50;
-        }
-    }
-
-    if (state === 'INTERVENTION') {
-        if (elionGhost.stage === 'TELEPORT') { elionGhost.opacity += 0.02; if (elionGhost.opacity >= 1) { elionGhost.x = elionGhost.targetX; elionGhost.y = elionGhost.targetY; elionGhost.stage = 'CHARGE'; elionGhost.timer = 120; } }
-        else if (elionGhost.stage === 'CHARGE') { elionGhost.timer--; if (elionGhost.timer <= 0) { elionGhost.stage = 'BLAST'; explosionEffect = { x: customer.x, y: customer.y, size: 0, alpha: 1 }; } }
-        else if (elionGhost.stage === 'BLAST') { customer.x += 4; explosionEffect.size += 3; if (customer.x > 700) elionGhost.stage = 'FADE'; }
-        else if (elionGhost.stage === 'FADE') { elionGhost.opacity -= 0.015; explosionEffect.alpha -= 0.01; if (elionGhost.opacity <= 0) { state = 'WALK'; elionGhost = null; explosionEffect = null; customer = null; lastCustTime = Date.now(); } }
-        return;
-    }
-
-    if (state !== 'WALK' && state !== 'GOD_WAIT' && state !== 'GOD_READY') return;
-    if (elionSat >= 25) player.speed = 6; else if (elionSat < 20) player.speed = 2.5; else player.speed = 4;
-    let perkList = [];
-    if (elionSat < 20) perkList.push(t[curLang].perks.tired);
-    if (elionSat >= 25) perkList.push(t[curLang].perks.happy);
-    if (elionSat >= 50) perkList.push(t[curLang].perks.gilded);
-    if (elionSat >= 75) perkList.push(t[curLang].perks.oracle);
-    document.getElementById('perks-display').innerText = perkList.join(" | ");
-
-    let mx = 0, my = 0;
-    if (keys['KeyW'] || keys['ArrowUp']) my -= player.speed;
-    if (keys['KeyS'] || keys['ArrowDown']) my += player.speed;
-    if (keys['KeyA'] || keys['ArrowLeft']) mx -= player.speed;
-    if (keys['KeyD'] || keys['ArrowRight']) mx += player.speed;
-
-    if (!checkCollision(player.x + mx, player.y + my)) { player.x += mx; player.y += my; player.isMoving = (mx !== 0 || my !== 0); } else player.isMoving = false;
-
-    if (player.x < -15) { if (room === 'CENTER') { room = 'LEFT'; player.x = 580; } else if (room === 'RIGHT') { room = 'CENTER'; player.x = 580; } }
-    else if (player.x > 615) { if (room === 'CENTER') { room = 'RIGHT'; player.x = 20; } else if (room === 'LEFT') { room = 'CENTER'; player.x = 20; } }
-    else if (player.y < -15 && room === 'CENTER') { room = 'GARDEN'; player.y = 570; }
-    else if (player.y > 615 && room === 'GARDEN') { room = 'CENTER'; player.y = 50; }
-
-    // --- ELION'S SHIFT SCHEDULE ---
-    let currentMilestone = Math.floor(visitorCount / 20);
-    if (currentMilestone > lastMilestoneChecked && currentMilestone > 0) {
-        lastMilestoneChecked = currentMilestone;
-
-        if (currentMilestone % 2 === 1) {
-            // Odd milestones (20, 60, 100...): Elion comes out (not in a gay way)
-            elionLocation = 'WAITING_BAZAAR';
-            elionX = 700;
-        } else {
-            // Even milestones (40, 80, 120...): Elion returns
-            elionLocation = 'ROOM_RIGHT';
-        }
-    }
-    if (elionLocation === 'WAITING_BAZAAR') {
-        if (elionX > elionTargetX) {
-            elionX -= 2; // Walking speed
-        }
-    }
-
-    /// CHANCES OF CHARACTERS TO APPEAR
-    if (room === 'CENTER' && !customer && Date.now() - lastCustTime > 7000) {
-        let r = Math.random();
-        let role = 'SHOPPER';
-        let collectorChance = (activeRumorEffect === "angry_collector") ? 0.15 : 0.05;
-        // Fortune seekers only appear when Elion is AWAY
-        let elionLeftForVacation = (elionLocation === 'AWAY');
-
-        // Clean probability ranges (0.0 to 1.0)
-        if (elionLeftForVacation && r < 0.35) {
-            role = 'FORTUNE'; // 35% chance once Elion is on vacation
-        } else if (r < 0.02) {
-            role = 'RAINBOW'; // 2% chance
-        } else if (r < 0.02 + collectorChance) {
-            role = 'DEBT';    // 5% (or 15% with rumor) chance
-        } else if (r < 0.08) {
-            role = 'KIREN';   // ~6% chance
-        } else if (r < 0.10) {
-            role = 'JESSE';   // ~2% chance
-        } else if (r < 0.16) {
-            role = 'KIDDO';   // ~6% chance
-        } else if (r < 0.70) {
-            role = 'GAMBLER'; // ~34% chance
-        } else {
-            role = 'SHOPPER'; // Remaining percentage
-        }
-
-        let skins = [sprCust1, sprCust2, sprCust3];
-        let skin = skins[Math.floor(Math.random() * 3)];
-        if (role === 'DEBT') skin = sprCollector;
-        if (role === 'KIREN') skin = sprKiren;
-        if (role === 'KIDDO') skin = sprKiddo;
-        if (role === 'JESSE') skin = sprJesse;
-        if (role === 'RAINBOW') skin = sprRainbow;
-        if (role === 'FORTUNE') skin = skins[Math.floor(Math.random() * 3)];
-
-        customer = {
-            x: 300, y: -50, targetY: 140, state: 'IN',
-            role: role, skin: skin,
-            bet: Math.floor(Math.random() * 40) + 10
-        };
-    }
-    if (customer) {
-        if (customer.state === 'IN') { customer.y += 2; if (customer.y >= customer.targetY) { customer.state = 'WAIT'; } }
-        else if (customer.state === 'OUT') { if (customer.targetX) customer.x += 4; else customer.y -= 3; if (customer.y < -50 || customer.x > 650) { customer = null; lastCustTime = Date.now(); } }
-    }
-
-
-
-
-    if (room === 'GARDEN' && flowers.length < 8 && Date.now() - lastFlowerTime > 8000) {
-        let testX = 50 + Math.random() * 500;
-        let testY = 120 + Math.random() * 430;
-
-        if (isGrass(testX, testY)) {
-            flowers.push({
-                x: testX,
-                y: testY,
-                c: `hsl(${Math.random() * 360}, 80%, 60%)`
-            });
-            lastFlowerTime = Date.now();
-            console.log("🌸 A flower has grown at:", testX, testY);
-        } else {
-            // If it tried to spawn on a path, let it try again very soon
-            lastFlowerTime = Date.now() - 4500;
-        }
-    }
-
-    // Random Rumor Timer (Changes to a random rumor every 2 minutes)
-    if (Date.now() - lastRumorChangeTime > RUMOR_DURATION) {
-        // Pick a random index based on the list size
-        currentRumorIndex = Math.floor(Math.random() * t.en.rumors.length);
-
-        // Set the effect (always uses the 'en' version's effect key)
-        activeRumorEffect = t.en.rumors[currentRumorIndex].effect;
-
-        lastRumorChangeTime = Date.now();
-        console.log("New Rumor Active: " + activeRumorEffect);
-    }
-
-
-    if (room === 'GARDEN' && player.x < -15) {
-        room = 'CASINO_PATH';
-        player.x = 550; // Come in from the right side of the alley
-    } else if (room === 'CASINO_PATH' && player.x > 615) {
-        room = 'GARDEN';
-        player.x = 50; // Go back to the Garden
-    }
-
-
-
-    //location of charctrs n things
-    // Check ranges for the "Press E" hint
-    const nearFlower = room === 'GARDEN' && flowers.some(f => Math.hypot(player.x - f.x, player.y - f.y) < 50);
-    const nearCust = room === 'CENTER' && customer?.state === 'WAIT' && Math.abs(player.y - customer.y) < 150;
-    const nearElion = (room === 'RIGHT' && elionLocation === 'ROOM_RIGHT' && Math.hypot(player.x - 500, player.y - 520) < 120) ||
-        (room === 'CENTER' && elionLocation === 'WAITING_BAZAAR' && Math.hypot(player.x - elionX, player.y - elionY) < 120);
-    (room === 'CENTER' && Math.hypot(player.x - 500, player.y - 530) < 120);
-    const nearShop = room === 'LEFT' && player.y < 450 && Math.abs(player.x - 300) < 150;
-    const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
-    const nearGod = room === 'GOD_FIELD' && godInteractable && Math.hypot(player.x - 300, player.y - 200) < 150;
-    const nearTarot = room === 'RIGHT' && Math.abs(player.x - 300) < 100 && player.y < 420;
-    const nearBoard = room === 'GARDEN' && player.x < 260 && player.y < 170;
-
-    // Update the hint display
-    document.getElementById('interact-hint').style.display =
-        (nearFlower || nearCust || nearElion || nearShop || nearRadio || nearGod || nearBoard || nearTarot) ? 'block' : 'none';
-}
-
-function drawJournal() {
-    ctx.fillStyle = "rgba(0,0,0,0.85)";
-    ctx.fillRect(0, 0, 600, 600);
-
-    const bg = (journalTab === 'characters') ? bgJournalChar : bgJournalTut;
-    if (bg.complete && bg.naturalWidth > 0) {
-        ctx.drawImage(bg, 50, 50, 500, 500);
-    }
-
-    if (journalTab === 'characters') {
-        const discovered = Array.from(metCharacters);
-        const role = discovered[charPageIndex];
-        const data = charLore[role] || { en: "???", ua: "???" };
-
-        // 1. Draw Sprite on Right Page
-        let skin = sprCoviello;
-        if (role === 'ELION') skin = sprElion;
-        else if (role === 'MERCHANT') skin = sprMerchant;
-        else if (role === 'KIREN') skin = sprKiren;
-        else if (role === 'JESSE') skin = sprJesse;
-        else if (role === 'RAINBOW') skin = sprRainbow;
-        else if (role === 'KIDDO') skin = sprKiddo;
-        else if (role === 'COLLECTOR') skin = sprCollector;
-        else if (role === 'SHOPPER') skin = sprCust1;
-        else if (role === 'GAMBLER') skin = sprCust3;
-        else if (role === 'RECEPTIONIST') skin = sprReceptionist;
-        else if (role === 'CASINO_DEALER') skin = sprDealer1;
-        else if (role === 'FORTUNE') skin = sprCust4;
-        else if (role === 'GOD') skin = sprGod1;
-
-        if (skin.complete) ctx.drawImage(skin, 340, 180, 130, 130);
-
-        // 2. Draw Text on Left Page
-        ctx.fillStyle = "#3d251e";
-        ctx.textAlign = "left";
-        ctx.font = "bold 20px Arial";
-        ctx.fillText(role, 115, 200);
-        ctx.font = "14px Arial";
-        wrapText(data[curLang], 115, 215, 170, 20);
-
-        // 3. PROGRESS BAR (Bottom of Left Page)
-        const barX = 115;
-        const barY = 460;
-        const barW = 150;
-        const barH = 12;
-
-        // Bar Background
-        ctx.fillStyle = "#d2b48c";
-        ctx.fillRect(barX, barY, barW, barH);
-
-        // Bar Fill
-        const progress = metCharacters.size / TOTAL_CHARACTERS;
-        ctx.fillStyle = "#9b59b6"; // Purple theme
-        ctx.fillRect(barX, barY, barW * progress, barH);
-
-        // Bar Outline
-        ctx.strokeStyle = "#3d251e";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(barX, barY, barW, barH);
-
-        // Text
-        ctx.fillStyle = "#3d251e";
-        ctx.font = "bold 10px Arial";
-        ctx.fillText(`${metCharacters.size} / ${TOTAL_CHARACTERS} FOUND`, barX, barY - 5);
-
-        // 4. Visual Arrows
-        ctx.fillStyle = "#3d251e";
-        ctx.beginPath(); ctx.moveTo(70, 300); ctx.lineTo(90, 280); ctx.lineTo(90, 320); ctx.fill();
-        ctx.beginPath(); ctx.moveTo(530, 300); ctx.lineTo(510, 280); ctx.lineTo(510, 320); ctx.fill();
-    }
-}
-
-// --- MASTER DRAWING LOOP ---
-function draw() {
-
-
-    // --- TAROT MODE OVERRIDE ---
-    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
-        ctx.clearRect(0, 0, 600, 600);
-
-        // 1. Draw background
-        if (bgTarotMode.complete && bgTarotMode.naturalWidth > 0) {
-            ctx.drawImage(bgTarotMode, 0, 0, 600, 600);
-        } else {
-            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, 600, 600); // Dark fallback
-        }
-
-        // 2. Draw the pile at the bottom
-        tarotDeck.forEach(c => {
-            if (!c.selected) {
-                ctx.fillStyle = "#fffdf0";
-                ctx.fillRect(c.x, c.y, c.w, c.h);
-                ctx.strokeStyle = "#3d251e";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(c.x, c.y, c.w, c.h);
-                // Moon design
-                ctx.fillStyle = "#ffd700";
-                ctx.beginPath(); ctx.arc(c.x + c.w / 2, c.y + c.h / 2, 6, 0, Math.PI * 2); ctx.fill();
-            }
-        });
-
-        // 3. Draw the spread at the top
-        selectedTarotCards.forEach((c, i) => {
-            let targetX = 60 + (i * 100); // Top left spread
-            let targetY = 60;
-
-            c.x += (targetX - c.x) * 0.1;
-            c.y += (targetY - c.y) * 0.1;
-
-            ctx.fillStyle = "#fffdf0";
-            ctx.fillRect(c.x, c.y, c.w, c.h);
-            ctx.strokeStyle = "#3d251e";
-            ctx.strokeRect(c.x, c.y, c.w, c.h);
-
-            if (state === 'TAROT_REVEAL' && tarotRevealIndex > i) {
-                ctx.fillStyle = c.data.color;
-                ctx.fillRect(c.x + 5, c.y + 5, c.w - 10, c.h - 35);
-                ctx.fillStyle = "#3d251e";
-                ctx.font = "bold 7px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText(c.data.name, c.x + c.w / 2, c.y + c.h - 10);
-            }
-        });
-        return; // Stop RPG drawing
-    }
-
-    ctx.clearRect(0, 0, 600, 600);
-
-    if (room === 'CENTER') {
-        ctx.drawImage(bgBazaar, 0, 0, 600, 600);
-        // If Elion came out to complain, draw him waiting on the right side of the bazaar (x: 500, y: 300)
-        if (elionLocation === 'WAITING_BAZAAR' && !elionGhost) {
-            let isWalking = (elionX > elionTargetX);
-            drawEntity(sprElion, elionX, elionY, "ELION", isWalking, '#9b59b6');
-        }
-        // Radio...
-        ctx.fillStyle = '#5d4037'; ctx.fillRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
-        ctx.fillStyle = isMusicPlaying ? '#0f0' : '#444'; ctx.beginPath(); ctx.arc(radioPos.x + 10, radioPos.y, 2, 0, Math.PI * 2); ctx.fill();
-        if (isMusicPlaying) { ctx.fillStyle = 'white'; ctx.fillText("♪", radioPos.x, radioPos.y - 15 + Math.sin(Date.now() / 200) * 5); }
-
-        if (customer) {
-            let lbl = (t[curLang].roles[customer.role.toLowerCase()] || customer.role) + (customer.role === 'GAMBLER' ? ` (${customer.bet})` : '');
-            drawEntity(customer.skin, customer.x, customer.y, lbl, customer.state !== 'WAIT', '#e74c3c');
-        }
-
-        ctx.fillStyle = hasDeluxeRadio ? '#8b4513' : '#5d4037'; // Slightly shinier brown for deluxe
-        ctx.fillRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
-
-        // If deluxe, add a little gold trim
-        if (hasDeluxeRadio) {
-            ctx.strokeStyle = '#ffd700';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
-        }
-    }
-
-    else if (room === 'RIGHT') {
-        ctx.drawImage(bgElion, 0, 0, 600, 600);
-
-        if (elionLocation === 'ROOM_RIGHT') {
-            drawEntity(sprElion, 500, 520, t[curLang].elion.name, false, '#2ecc71');
-
-            // Friendship Bar Background
-            ctx.fillStyle = "#222";
-            ctx.fillRect(450, 440, 100, 6);
-
-            // Friendship Bar Fill (FIXED: Added width and height arguments properly)
-            ctx.fillStyle = elionSat > 30 ? "#9b59b6" : "#e74c3c";
-            ctx.fillRect(450, 440, elionSat, 6);
-        } else {
-            ctx.fillStyle = "rgba(255,255,255,0.4)";
-            ctx.font = "italic 12px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(curLang === 'en' ? "(He's not here right now...)" : "(Його зараз немає тут)", 500, 520);
-        }
-    }
-
-    else if (room === 'LEFT') {
-        ctx.drawImage(bgShop, 0, 0, 600, 600);
-        drawEntity(sprMerchant, 300, 260, t[curLang].merchant.name, false, '#9b59b6');
-    }
-    else if (room === 'GARDEN') {
-        if (bgGarden.complete && bgGarden.naturalWidth > 0) ctx.drawImage(bgGarden, 0, 0, 600, 600);
-        flowers.forEach(f => {
-            ctx.fillStyle = f.c; ctx.beginPath(); ctx.arc(f.x, f.y, 8, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(f.x, f.y, 3, 0, Math.PI * 2); ctx.fill();
-        });
-        if (player.x < 250 && player.y < 250) {
-            let timeLeft = Math.ceil((RUMOR_DURATION - (Date.now() - lastRumorChangeTime)) / 1000);
-            ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
-            ctx.fillText(t[curLang].journal.read || "Read Board", 110, 100);
-            ctx.font = "10px Arial"; ctx.fillText(`${timeLeft}s`, 110, 115);
-        }
-    }
-    else if (room === 'ROMANTIC') {
-        if (bgRomantic.complete && bgRomantic.naturalWidth > 0) ctx.drawImage(bgRomantic, 0, 0, 600, 600);
-        drawEntity(sprElion, 350, 450, t[curLang].elion.name.split(' ')[0], false, '#2ecc71');
-    }
-    else if (room === 'GOD_FIELD') {
-        if (bgGodField.complete && bgGodField.naturalWidth > 0) ctx.drawImage(bgGodField, 0, 0, 600, 600);
-        else { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 600, 600); }
-        if (godVisible) {
-            let godImg = godForm === 1 ? sprGod1 : sprGod2;
-            drawEntity(godImg, 300, 200, t[curLang].god.name, false, "#fff");
-        }
-    }
-    else if (room === 'CASINO_LOBBY') {
-        ctx.drawImage(bgCasinoLobby, 0, 0, 600, 600);
-        drawEntity(sprReceptionist, 300, 260, (curLang === 'en' ? "RECEPTIONIST" : "АДМІНІСТРАТОР"), false, '#fff');
-
-        // Draw a small exit arrow or text at the bottom when player is near
-        if (player.y > 500) {
-            ctx.fillStyle = "white";
-            ctx.font = "bold 12px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(curLang === 'en' ? "EXIT" : "ВИХІД", 300, 595);
-        }
-    }
-
-    else if (room === 'CASINO_GAMES') {
-        ctx.drawImage(bgCasinoGames, 0, 0, 600, 600);
-
-        // Draw Dealer 1 (Bottom Left)
-        drawEntity(sprDealer1, 220, 480, (curLang === 'en' ? "DEALER (100G)" : "ДІЛЕР (100З)"), false, '#fff');
-        // Draw Dealer 2 (Top Right)
-        drawEntity(sprDealer2, 490, 290, (curLang === 'en' ? "DEALER (200G)" : "ДІЛЕР (200З)"), false, '#fff');
-    }
-
-
-    else if (room === 'CASINO_PATH') {
-        // Choose the PNG based on current gold
-        let bg = (gold >= 500 || casinoUnlocked) ? bgCasinoOpen : bgCasinoClosed;
-        ctx.drawImage(bg, 0, 0, 600, 600);
-
-
-
-
-
-        // Draw a prompt near the door
-        if (Math.hypot(player.x - 260, player.y - 200) < 100) {
-            ctx.fillStyle = "white";
-            ctx.font = "bold 14px Arial";
-            ctx.textAlign = "center";
-            ctx.fillText(gold >= 500 ? (curLang === 'en' ? "ENTER" : "УВІЙТИ") : (curLang === 'en' ? "READ" : "ЧИТАТИ"), 260, 150);
-        }
-    }
-    else if (room === 'CASINO_INTERIOR') {
-        if (bgCasinoInside.complete && bgCasinoInside.naturalWidth > 0) {
-            ctx.drawImage(bgCasinoInside, 0, 0, 600, 600);
-        } else {
-            ctx.fillStyle = "#111"; // Dark red/black placeholder for casino
-            ctx.fillRect(0, 0, 600, 600);
-            ctx.fillStyle = "white";
-            ctx.fillText("Under Construction...", 300, 300);
-        }
-    }
-
-    // 3. Special Effects (Intervention/Explosion)
-    if (elionGhost) { ctx.globalAlpha = elionGhost.opacity; drawEntity(sprElion, elionGhost.x, elionGhost.y, "ELION", false, '#9b59b6'); ctx.globalAlpha = 1; }
-    if (explosionEffect) { ctx.globalAlpha = explosionEffect.alpha; if (sprExplosion.complete) ctx.drawImage(sprExplosion, explosionEffect.x - explosionEffect.size / 2, explosionEffect.y - explosionEffect.size / 2, explosionEffect.size, explosionEffect.size); ctx.globalAlpha = 1; }
-
-    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
-        // Dim the background a bit to focus on table
-        ctx.fillStyle = "rgba(0,0,0,0.4)";
-        ctx.fillRect(0, 0, 600, 600);
-
-        // Draw card pile
-        tarotDeck.forEach(c => {
-            if (!c.selected) {
-                ctx.fillStyle = "#fffdf0";
-                ctx.fillRect(c.x, c.y, c.w, c.h);
-                ctx.strokeStyle = "#3d251e";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(c.x, c.y, c.w, c.h);
-                // Back design
-                ctx.fillStyle = "#ffd700";
-                ctx.beginPath(); ctx.arc(c.x + c.w / 2, c.y + c.h / 2, 8, 0, Math.PI * 2); ctx.fill();
-            }
-        });
-
-        // Draw spread
-        selectedTarotCards.forEach((c, i) => {
-            let targetX = 100 + (i * 170);
-            let targetY = 380;
-            c.x += (targetX - c.x) * 0.15;
-            c.y += (targetY - c.y) * 0.15;
-
-            ctx.fillStyle = "#fffdf0";
-            ctx.fillRect(c.x, c.y, c.w, c.h);
-            ctx.strokeStyle = "#3d251e";
-            ctx.strokeRect(c.x, c.y, c.w, c.h);
-
-            if (state === 'TAROT_REVEAL' && tarotRevealIndex > i) {
-                // Revealed card front
-                ctx.fillStyle = c.data.color;
-                ctx.fillRect(c.x + 8, c.y + 8, c.w - 16, c.h - 45);
-                ctx.fillStyle = "#3d251e";
-                ctx.font = "bold 9px Arial";
-                ctx.textAlign = "center";
-                ctx.fillText(c.data.name, c.x + c.w / 2, c.y + c.h - 15);
-            }
-        });
-    }
-
-    // Draw Player
-    let pSkin = sprCoviello;
-    if (currentSkin === 'HAT') pSkin = sprCovielloHat;
-    if (currentSkin === 'GAMBLER') pSkin = sprCovielloGambler;
-    drawEntity(pSkin, player.x, player.y, 'COVIELLO', player.isMoving, '#4a6fa5');
-
-    // Draw Journal overlay
-    if (state === 'JOURNAL') {
-        drawJournal();
-    }
-}
-
-// --- HELPER: SPRITE RENDERER ---
-function drawEntity(img, x, y, name, walk, color) {
-    let b = walk ? Math.sin(Date.now() / 120) * 6 : 0;
-    let s = 90;
-    let shakeX = 0, shakeY = 0;
-
-    // Jesse Shaking effect
-    if (name.includes("JESSE") || name.includes("ДЖЕССІ")) {
-        shakeX = (Math.random() - 0.5) * 8;
-        shakeY = (Math.random() - 0.5) * 8;
-    }
-
-    if (!img || !img.complete || img.naturalWidth === 0) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x - 30 + shakeX, y - 30 + b + shakeY, 60, 60);
-    } else {
-        ctx.drawImage(img, x - (s / 2) + shakeX, y - (s / 2) + b + shakeY, s, s);
-    }
-    ctx.fillStyle = 'white'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
-    ctx.fillText(name, x + shakeX, y - 55 + b + shakeY);
-}
-
-
-
-function drawArrow(x, y, flip) {
-    ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
-    ctx.fillStyle = "#3d251e"; ctx.beginPath();
-    ctx.moveTo(-10, -15); ctx.lineTo(10, 0); ctx.lineTo(-10, 15); ctx.fill();
-    ctx.restore();
-}
-
-function wrapText(text, x, y, maxWidth, lineHeight) {
-    let words = text.split(' '), line = '';
-    for (let n = 0; n < words.length; n++) {
-        let testLine = line + words[n] + ' ';
-        if (ctx.measureText(testLine).width > maxWidth) {
-            ctx.fillText(line, x, y); line = words[n] + ' '; y += lineHeight;
-        } else { line = testLine; }
-    }
-    ctx.fillText(line, x, y);
-}
-// Safe translation lookup to prevent freezing if strings.js is missing a key
-function getStr(category, key, fallback) {
-    try {
-        if (t[curLang] && t[curLang][category] && t[curLang][category][key]) {
-            return t[curLang][category][key];
-        }
-    } catch (e) { }
-    return fallback;
-}
-
-function incrementVisitors() {
-    visitorCount++;
-    document.getElementById('visit-val').innerText = visitorCount;
-}
-
-
-function toggleJournal() {
-    journalOpen = !journalOpen;
-    state = journalOpen ? 'JOURNAL' : 'WALK';
-}
-
-function loop() {
-    update();
-    draw();
-    requestAnimationFrame(loop);
-}
-loop();
-
-
-
-
-
-
-
-    function handleInteraction() {
+    </script>
+    <!-- ============ EVENTS (events.js) ============ -->
+    <script>
+function handleInteraction() {
 
 
     // 1. Radio (Bazaar)
@@ -2254,8 +1570,887 @@ function endBJ(res) {
 }
 
 
+    </script>
+    <!-- ============ GAME LOOP (game.js) ============ -->
+    <script>
+drawIcons();
+canvas.onclick = e => {
 
-        
+    //at the VERY TOP
+    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
+        ctx.clearRect(0, 0, 600, 600);
+
+        if (bgTarotMode.complete) {
+            ctx.drawImage(bgTarotMode, 0, 0, 600, 600);
+        } else {
+            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, 600, 600);
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // Only allow clicking in the bottom half
+        if (my > 350) {
+            for (let i = tarotDeck.length - 1; i >= 0; i--) {
+                let c = tarotDeck[i];
+                if (mx > c.x && mx < c.x + c.w && my > c.y && my < c.y + c.h && !c.selected) {
+                    c.selected = true;
+                    selectedTarotCards.push(c);
+
+                    if (selectedTarotCards.length === 3) {
+                        state = 'TAROT_REVEAL';
+                        // Show the dialogue box in the bottom half
+                        const box = document.getElementById('dialogue-box');
+                        box.style.display = 'block';
+                        box.classList.add('ending-mode'); // Use your compact style
+                        nextTarotCard();
+                    }
+                    break;
+                }
+            }
+        }
+        return;
+    }
+
+
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    if (state === 'JOURNAL') {
+        // --- BOOKMARK CLICKS ---
+        // Blue Bookmark (Characters) - Leftmost tab
+        if (mx > 120 && mx < 185 && my > 50 && my < 150) {
+            journalTab = 'characters';
+            charPageIndex = 0;
+        }
+        // Green Bookmark (Tutorial) - Second tab
+        if (mx > 190 && mx < 250 && my > 50 && my < 150) {
+            journalTab = 'tutorial';
+        }
+
+        // --- NAVIGATION ARROWS ---
+        if (journalTab === 'characters') {
+            const discovered = Array.from(metCharacters);
+            // Click Left side of book
+            if (mx > 50 && mx < 150 && my > 200 && my < 450) {
+                charPageIndex = (charPageIndex - 1 + discovered.length) % discovered.length;
+            }
+            // Click Right side of book
+            if (mx > 450 && mx < 550 && my > 200 && my < 450) {
+                charPageIndex = (charPageIndex + 1) % discovered.length;
+            }
+        }
+        return; // Prevent other clicks while journal is open
+    }
+
+    // --- RADIO INTERACTION (Only if not in Journal) ---
+    const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
+    if (nearRadio && Math.hypot(mx - radioPos.x, my - radioPos.y) < 50) {
+        toggleMusic();
+    }
+
+};
+
+
+// BUTTONS
+window.onkeydown = e => {
+    keys[e.code] = true;
+    const isInteractKey = (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'NumpadEnter');
+
+    // Toggle Journal with J
+    if (e.code === 'KeyJ') {
+        if (state === 'WALK' || state === 'JOURNAL') {
+            toggleJournal();
+        }
+    }
+
+    if (state === 'WALK' && isInteractKey) {
+        e.preventDefault();
+        handleInteraction();
+    }
+
+    // Navigation inside Journal
+    if (state === 'JOURNAL') {
+        if (e.code === 'ArrowRight') { charPageIndex = (charPageIndex + 1) % metCharacters.size; }
+        if (e.code === 'ArrowLeft') { charPageIndex = (charPageIndex - 1 + metCharacters.size) % metCharacters.size; }
+    }
+
+    if (state === 'GOD_READY' && isInteractKey) {
+        e.preventDefault();
+        startGodDialogue();
+    }
+    if (state === 'ENDING' && isInteractKey) {
+        e.preventDefault();
+        advanceEnding();
+    }
+    if (state === 'BJ') {
+        if (e.code === 'KeyH') hit();
+        if (e.code === 'KeyS') stand();
+    }
+};
+window.onkeyup = e => keys[e.code] = false;
+
+
+function checkCollision(nx, ny) {
+    if (state !== 'WALK' && state !== 'GOD_READY') return true;
+
+    // The 'p' is the padding (hitbox size). 
+    // Since Coviello is 60px wide, 20-25px padding makes him look like he has 'weight'.
+    const p = 20;
+
+    if (room === 'CENTER') {
+        // left and right
+        if (nx < p && ny < 200) return true;
+        if (nx > 600 - p && ny < 180) return true;
+
+
+        if (ny > 170 - p && ny < 260 + p && nx > 70 - p && nx < 530 + p) return true; // table centre
+        if (ny > 260 - p && ny < 350 + p && nx > 70 - p && nx < 130 + p) return true; // table left
+        if (ny > 260 - p && ny < 280 + p && nx > 430 - p && nx < 450 + p) return true; // wase
+        if (ny > 260 - p && ny < 350 + p && nx > 470 - p && nx < 530 + p) return true; // table right
+        if (ny > 520 - p && nx > 70 - p && nx < 530 + p) return true; // table down
+
+        // interaction
+        if (customer && customer.state === 'WAIT' && Math.hypot(nx - customer.x, ny - customer.y) < 50) return true;
+
+        // bottom
+        if (ny > 580) return true;
+    }
+
+    if (room === 'RIGHT') {
+        // Top walls
+        if (nx < 140 + p && ny < 110 + p) return true; // lamp
+        if (nx > 160 - p && nx < 450 + p && ny < 70 + p) return true;
+        if (nx > 410 - p && ny < 100 + p) return true; // closet
+        if (nx > 230 - p && nx < 375 + p && ny > 160 - p && ny < 400 + p) return true;  // table
+
+        // elion collision
+        if (elionLocation === 'ROOM_RIGHT' && Math.hypot(nx - 500, ny - 520) < 60) return true;
+
+        // boundaries
+        if (ny > 580) return true;
+        if (nx > 600 - p) return true;
+    }
+
+    if (room === 'LEFT') {
+        if (ny < 200 + p || ny > 580) return true;
+        // counter
+        if (ny < 230 + p && nx > 130 - p && nx < 480 + p) return true;
+        // collision with merchant
+        if (Math.hypot(nx - 300, ny - 260) < 60) return true;
+    }
+
+    if (room === 'GARDEN') {
+        // exit hole down
+        if (ny > 580 && nx > 50 && nx < 500) return false;
+        // borders
+        if (ny < 100 + p || ny > 580 || nx > 580 - p) return true;
+    }
+
+    if (room === 'GOD_FIELD') {
+        if (ny < 300 || ny > 580) return true;
+    }
+
+
+    if (room === 'CASINO_PATH') {
+        const p = 20;
+        // Block the building on the left (Adjusted nx to 230 so door is accessible)
+        if (nx < 230) return true;
+        // Block the top wall area
+        if (ny < 120) return true;
+        // Block the trash can (bottom left)
+        if (nx < 160 && ny > 450) return true;
+        // Block the bottom edge
+        if (ny > 580) return true;
+        return false;
+    }
+
+
+    if (room === 'CASINO_LOBBY') {
+        const p = 20;
+        // collision with receptionist
+        if (Math.hypot(nx - 300, ny - 260) < 60) return true;
+        //counter
+        if (ny < 270 && nx > 100 && nx < 500) return true;
+        //top wall
+        if (ny < 110) return true;
+        //right wall (no exit there)
+        if (nx > 580) return true;
+        // Block left wall EXCEPT for the doorway to the Games Room
+        if (nx < 20 && (ny < 300)) return true;
+        return false;
+    }
+
+    if (room === 'CASINO_GAMES') {
+        const p = 15;
+
+        // dealers
+        if (Math.hypot(nx - 220, ny - 480) < 60) return true;
+        if (Math.hypot(nx - 500, ny - 290) < 60) return true;
+
+        // table bottom
+        if (ny > 299 - p && ny < 400 + p && nx < 280 - p) return true;
+
+        // нижній стілець
+        if (ny > 400 - p && ny < 470 + p && nx > 120 - p && nx < 180 + p) return true;
+
+        // ВЕРХНІЙ СТІЛ
+        if (nx > 350 - p && ny < 280 + p) return true;
+
+        //plant
+        if (ny < 130 + p && nx < 75 + p) return true;
+
+        // верхня стіна
+        if (ny < 110) return true;
+
+        // ліва стіна
+        if (nx < 10) return true;
+
+        // bottom boundary
+        if (ny > 580) return true;
+        return false;
+    }
+
+
+
+
+    return false;
+}
+
+// Add this helper function just above the update() function
+function isGrass(x, y) {
+    // Bulletin Board Area (Top Left)
+    if (x < 220 && y < 220) return false;
+    // Vertical Path (The middle stone road)
+    if (x > 240 && x < 380) return false;
+    // Horizontal Path (The side road)
+    if (y > 140 && y < 250 && x < 300) return false;
+    return true;
+}
+
+function update() {
+
+    // --- INSTANT ENDING CHECK ---
+    if (elionSat >= 100 && state !== 'ENDING' && room !== 'ROMANTIC') {
+        triggerEnding();
+        return;
+    }
+
+    if (state === 'ENDING') return;
+
+    // GOD FIELD TRANSITION (15 SECONDS)
+    if (room === 'LEFT' && player.x < -10) {
+        offScreenTimer++;
+        if (offScreenTimer > 900) { // 15 seconds at 60fps
+            room = 'GOD_FIELD';
+            player.x = 300;
+            offScreenTimer = 0;
+            godSequenceActive = true;
+            godTimer = 0;
+            godForm = 1;
+            godVisible = true;
+            godInteractable = false;
+            state = 'GOD_WAIT';
+        }
+    } else if (room === 'GOD_FIELD' && (player.x < -10 || player.x > 610)) {
+        offScreenTimer++;
+        if (offScreenTimer > 900) { // 15 seconds at 60fps
+            room = 'LEFT';
+            player.x = 50;
+            offScreenTimer = 0;
+        }
+    } else {
+        offScreenTimer = 0;
+    }
+
+    // GOD SEQUENCE LOGIC
+    if (godSequenceActive && state === 'GOD_WAIT') {
+        godTimer++;
+        if (godTimer > 700) { // form 1 stays for 5 seconds
+            godForm = 2;
+            godInteractable = true;
+            state = 'GOD_READY';
+        }
+    }
+
+    //Casinooo
+
+    // --- CASINO TRANSITIONS ---
+    if (room === 'CASINO_LOBBY') {
+        // 1. Walk LEFT to enter the Games Room
+        if (player.x < -15) {
+            room = 'CASINO_GAMES';
+            player.x = 580;
+        }
+        // 2. Walk DOWN to leave the Casino
+        if (player.y > 615) {
+            room = 'CASINO_PATH';
+            player.x = 260; // Appear in front of the door
+            player.y = 260;
+        }
+    }
+    else if (room === 'CASINO_GAMES') {
+        // Walk RIGHT to go back to the Lobby
+        if (player.x > 615) {
+            room = 'CASINO_LOBBY';
+            player.x = 20;
+        }
+    }
+
+    // --- ALLEY TO GARDEN ---
+    else if (room === 'CASINO_PATH') {
+        if (player.x > 615) {
+            room = 'GARDEN';
+            player.x = 50;
+        }
+    }
+
+    if (state === 'INTERVENTION') {
+        if (elionGhost.stage === 'TELEPORT') { elionGhost.opacity += 0.02; if (elionGhost.opacity >= 1) { elionGhost.x = elionGhost.targetX; elionGhost.y = elionGhost.targetY; elionGhost.stage = 'CHARGE'; elionGhost.timer = 120; } }
+        else if (elionGhost.stage === 'CHARGE') { elionGhost.timer--; if (elionGhost.timer <= 0) { elionGhost.stage = 'BLAST'; explosionEffect = { x: customer.x, y: customer.y, size: 0, alpha: 1 }; } }
+        else if (elionGhost.stage === 'BLAST') { customer.x += 4; explosionEffect.size += 3; if (customer.x > 700) elionGhost.stage = 'FADE'; }
+        else if (elionGhost.stage === 'FADE') { elionGhost.opacity -= 0.015; explosionEffect.alpha -= 0.01; if (elionGhost.opacity <= 0) { state = 'WALK'; elionGhost = null; explosionEffect = null; customer = null; lastCustTime = Date.now(); } }
+        return;
+    }
+
+    if (state !== 'WALK' && state !== 'GOD_WAIT' && state !== 'GOD_READY') return;
+    if (elionSat >= 25) player.speed = 6; else if (elionSat < 20) player.speed = 2.5; else player.speed = 4;
+    let perkList = [];
+    if (elionSat < 20) perkList.push(t[curLang].perks.tired);
+    if (elionSat >= 25) perkList.push(t[curLang].perks.happy);
+    if (elionSat >= 50) perkList.push(t[curLang].perks.gilded);
+    if (elionSat >= 75) perkList.push(t[curLang].perks.oracle);
+    document.getElementById('perks-display').innerText = perkList.join(" | ");
+
+    let mx = 0, my = 0;
+    if (keys['KeyW'] || keys['ArrowUp']) my -= player.speed;
+    if (keys['KeyS'] || keys['ArrowDown']) my += player.speed;
+    if (keys['KeyA'] || keys['ArrowLeft']) mx -= player.speed;
+    if (keys['KeyD'] || keys['ArrowRight']) mx += player.speed;
+
+    if (!checkCollision(player.x + mx, player.y + my)) { player.x += mx; player.y += my; player.isMoving = (mx !== 0 || my !== 0); } else player.isMoving = false;
+
+    if (player.x < -15) { if (room === 'CENTER') { room = 'LEFT'; player.x = 580; } else if (room === 'RIGHT') { room = 'CENTER'; player.x = 580; } }
+    else if (player.x > 615) { if (room === 'CENTER') { room = 'RIGHT'; player.x = 20; } else if (room === 'LEFT') { room = 'CENTER'; player.x = 20; } }
+    else if (player.y < -15 && room === 'CENTER') { room = 'GARDEN'; player.y = 570; }
+    else if (player.y > 615 && room === 'GARDEN') { room = 'CENTER'; player.y = 50; }
+
+    // --- ELION'S SHIFT SCHEDULE ---
+    let currentMilestone = Math.floor(visitorCount / 20);
+    if (currentMilestone > lastMilestoneChecked && currentMilestone > 0) {
+        lastMilestoneChecked = currentMilestone;
+
+        if (currentMilestone % 2 === 1) {
+            // Odd milestones (20, 60, 100...): Elion comes out to the Bazaar!
+            elionLocation = 'WAITING_BAZAAR';
+            elionX = 700;
+        } else {
+            // Even milestones (40, 80, 120...): Elion returns to his room.
+            elionLocation = 'ROOM_RIGHT';
+        }
+    }
+    if (elionLocation === 'WAITING_BAZAAR') {
+        if (elionX > elionTargetX) {
+            elionX -= 2; // Walking speed
+        }
+    }
+
+    /// CHANCES OF CHARACTERS TO APPEAR
+    if (room === 'CENTER' && !customer && Date.now() - lastCustTime > 7000) {
+        let r = Math.random();
+        let role = 'SHOPPER';
+        let collectorChance = (activeRumorEffect === "angry_collector") ? 0.15 : 0.05;
+        // Fortune seekers only appear when Elion is AWAY (off working/hiding)
+        let elionLeftForVacation = (elionLocation === 'AWAY');
+
+        // Clean probability ranges (0.0 to 1.0)
+        if (elionLeftForVacation && r < 0.35) {
+            role = 'FORTUNE'; // 35% chance once Elion is on vacation
+        } else if (r < 0.02) {
+            role = 'RAINBOW'; // 2% chance
+        } else if (r < 0.92 + collectorChance) {
+            role = 'DEBT';    // 5% (or 15% with rumor) chance
+        } else if (r < 0.08) {
+            role = 'KIREN';   // ~6% chance
+        } else if (r < 0.10) {
+            role = 'JESSE';   // ~2% chance
+        } else if (r < 0.16) {
+            role = 'KIDDO';   // ~6% chance
+        } else if (r < 0.70) {
+            role = 'GAMBLER'; // ~34% chance (Gamblers are back!)
+        } else {
+            role = 'SHOPPER'; // Remaining percentage
+        }
+
+        let skins = [sprCust1, sprCust2, sprCust3];
+        let skin = skins[Math.floor(Math.random() * 3)];
+        if (role === 'DEBT') skin = sprCollector;
+        if (role === 'KIREN') skin = sprKiren;
+        if (role === 'KIDDO') skin = sprKiddo;
+        if (role === 'JESSE') skin = sprJesse;
+        if (role === 'RAINBOW') skin = sprRainbow;
+        if (role === 'FORTUNE') skin = skins[Math.floor(Math.random() * 3)];
+
+        customer = {
+            x: 300, y: -50, targetY: 140, state: 'IN',
+            role: role, skin: skin,
+            bet: Math.floor(Math.random() * 40) + 10
+        };
+    }
+    if (customer) {
+        if (customer.state === 'IN') { customer.y += 2; if (customer.y >= customer.targetY) { customer.state = 'WAIT'; } }
+        else if (customer.state === 'OUT') { if (customer.targetX) customer.x += 4; else customer.y -= 3; if (customer.y < -50 || customer.x > 650) { customer = null; lastCustTime = Date.now(); } }
+    }
+
+
+
+
+    if (room === 'GARDEN' && flowers.length < 8 && Date.now() - lastFlowerTime > 8000) {
+        let testX = 50 + Math.random() * 500;
+        let testY = 120 + Math.random() * 430;
+
+        if (isGrass(testX, testY)) {
+            flowers.push({
+                x: testX,
+                y: testY,
+                c: `hsl(${Math.random() * 360}, 80%, 60%)`
+            });
+            lastFlowerTime = Date.now();
+            console.log("🌸 A flower has grown at:", testX, testY);
+        } else {
+            // If it tried to spawn on a path, let it try again very soon
+            lastFlowerTime = Date.now() - 4500;
+        }
+    }
+
+    // Random Rumor Timer (Changes to a random rumor every 2 minutes)
+    if (Date.now() - lastRumorChangeTime > RUMOR_DURATION) {
+        // Pick a random index based on the list size
+        currentRumorIndex = Math.floor(Math.random() * t.en.rumors.length);
+
+        // Set the effect (always uses the 'en' version's effect key)
+        activeRumorEffect = t.en.rumors[currentRumorIndex].effect;
+
+        lastRumorChangeTime = Date.now();
+        console.log("New Rumor Active: " + activeRumorEffect);
+    }
+
+
+    if (room === 'GARDEN' && player.x < -15) {
+        room = 'CASINO_PATH';
+        player.x = 550; // Come in from the right side of the alley
+    } else if (room === 'CASINO_PATH' && player.x > 615) {
+        room = 'GARDEN';
+        player.x = 50; // Go back to the Garden
+    }
+
+
+
+    //location of charctrs n things
+    // Check ranges for the "Press E" hint
+    const nearFlower = room === 'GARDEN' && flowers.some(f => Math.hypot(player.x - f.x, player.y - f.y) < 50);
+    const nearCust = room === 'CENTER' && customer?.state === 'WAIT' && Math.abs(player.y - customer.y) < 150;
+    const nearElion = (room === 'RIGHT' && elionLocation === 'ROOM_RIGHT' && Math.hypot(player.x - 500, player.y - 520) < 120) ||
+        (room === 'CENTER' && elionLocation === 'WAITING_BAZAAR' && Math.hypot(player.x - elionX, player.y - elionY) < 120);
+    (room === 'CENTER' && Math.hypot(player.x - 500, player.y - 530) < 120);
+    const nearShop = room === 'LEFT' && player.y < 450 && Math.abs(player.x - 300) < 150;
+    const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
+    const nearGod = room === 'GOD_FIELD' && godInteractable && Math.hypot(player.x - 300, player.y - 200) < 150;
+    const nearTarot = room === 'RIGHT' && Math.abs(player.x - 300) < 100 && player.y < 420;
+    const nearBoard = room === 'GARDEN' && player.x < 260 && player.y < 170;
+
+    // Update the hint display
+    document.getElementById('interact-hint').style.display =
+        (nearFlower || nearCust || nearElion || nearShop || nearRadio || nearGod || nearBoard || nearTarot) ? 'block' : 'none';
+}
+
+function drawJournal() {
+    ctx.fillStyle = "rgba(0,0,0,0.85)";
+    ctx.fillRect(0, 0, 600, 600);
+
+    const bg = (journalTab === 'characters') ? bgJournalChar : bgJournalTut;
+    if (bg.complete && bg.naturalWidth > 0) {
+        ctx.drawImage(bg, 50, 50, 500, 500);
+    }
+
+    if (journalTab === 'characters') {
+        const discovered = Array.from(metCharacters);
+        const role = discovered[charPageIndex];
+        const data = charLore[role] || { en: "???", ua: "???" };
+
+        // 1. Draw Sprite on Right Page
+        let skin = sprCoviello;
+        if (role === 'ELION') skin = sprElion;
+        else if (role === 'MERCHANT') skin = sprMerchant;
+        else if (role === 'KIREN') skin = sprKiren;
+        else if (role === 'JESSE') skin = sprJesse;
+        else if (role === 'RAINBOW') skin = sprRainbow;
+        else if (role === 'KIDDO') skin = sprKiddo;
+        else if (role === 'COLLECTOR') skin = sprCollector;
+        else if (role === 'SHOPPER') skin = sprCust1;
+        else if (role === 'GAMBLER') skin = sprCust3;
+        else if (role === 'RECEPTIONIST') skin = sprReceptionist;
+        else if (role === 'CASINO_DEALER') skin = sprDealer1;
+        else if (role === 'FORTUNE') skin = sprCust4;
+        else if (role === 'GOD') skin = sprGod1;
+
+        if (skin.complete) ctx.drawImage(skin, 340, 180, 130, 130);
+
+        // 2. Draw Text on Left Page
+        ctx.fillStyle = "#3d251e";
+        ctx.textAlign = "left";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText(role, 115, 200);
+        ctx.font = "14px Arial";
+        wrapText(data[curLang], 115, 215, 170, 20);
+
+        // 3. PROGRESS BAR (Bottom of Left Page)
+        const barX = 115;
+        const barY = 460;
+        const barW = 150;
+        const barH = 12;
+
+        // Bar Background
+        ctx.fillStyle = "#d2b48c";
+        ctx.fillRect(barX, barY, barW, barH);
+
+        // Bar Fill
+        const progress = metCharacters.size / TOTAL_CHARACTERS;
+        ctx.fillStyle = "#9b59b6"; // Purple theme
+        ctx.fillRect(barX, barY, barW * progress, barH);
+
+        // Bar Outline
+        ctx.strokeStyle = "#3d251e";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(barX, barY, barW, barH);
+
+        // Text
+        ctx.fillStyle = "#3d251e";
+        ctx.font = "bold 10px Arial";
+        ctx.fillText(`${metCharacters.size} / ${TOTAL_CHARACTERS} FOUND`, barX, barY - 5);
+
+        // 4. Visual Arrows
+        ctx.fillStyle = "#3d251e";
+        ctx.beginPath(); ctx.moveTo(70, 300); ctx.lineTo(90, 280); ctx.lineTo(90, 320); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(530, 300); ctx.lineTo(510, 280); ctx.lineTo(510, 320); ctx.fill();
+    }
+}
+
+// --- MASTER DRAWING LOOP ---
+function draw() {
+
+
+    // --- TAROT MODE OVERRIDE ---
+    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
+        ctx.clearRect(0, 0, 600, 600);
+
+        // 1. Draw background
+        if (bgTarotMode.complete && bgTarotMode.naturalWidth > 0) {
+            ctx.drawImage(bgTarotMode, 0, 0, 600, 600);
+        } else {
+            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, 600, 600); // Dark fallback
+        }
+
+        // 2. Draw the pile at the bottom
+        tarotDeck.forEach(c => {
+            if (!c.selected) {
+                ctx.fillStyle = "#fffdf0";
+                ctx.fillRect(c.x, c.y, c.w, c.h);
+                ctx.strokeStyle = "#3d251e";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(c.x, c.y, c.w, c.h);
+                // Moon design
+                ctx.fillStyle = "#ffd700";
+                ctx.beginPath(); ctx.arc(c.x + c.w / 2, c.y + c.h / 2, 6, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // 3. Draw the spread at the top
+        selectedTarotCards.forEach((c, i) => {
+            let targetX = 60 + (i * 100); // Top left spread
+            let targetY = 60;
+
+            c.x += (targetX - c.x) * 0.1;
+            c.y += (targetY - c.y) * 0.1;
+
+            ctx.fillStyle = "#fffdf0";
+            ctx.fillRect(c.x, c.y, c.w, c.h);
+            ctx.strokeStyle = "#3d251e";
+            ctx.strokeRect(c.x, c.y, c.w, c.h);
+
+            if (state === 'TAROT_REVEAL' && tarotRevealIndex > i) {
+                ctx.fillStyle = c.data.color;
+                ctx.fillRect(c.x + 5, c.y + 5, c.w - 10, c.h - 35);
+                ctx.fillStyle = "#3d251e";
+                ctx.font = "bold 7px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(c.data.name, c.x + c.w / 2, c.y + c.h - 10);
+            }
+        });
+        return; // Stop RPG drawing
+    }
+
+    ctx.clearRect(0, 0, 600, 600);
+
+    if (room === 'CENTER') {
+        ctx.drawImage(bgBazaar, 0, 0, 600, 600);
+        // If Elion came out to complain, draw him waiting on the right side of the bazaar (x: 500, y: 300)
+        if (elionLocation === 'WAITING_BAZAAR' && !elionGhost) {
+            let isWalking = (elionX > elionTargetX);
+            drawEntity(sprElion, elionX, elionY, "ELION", isWalking, '#9b59b6');
+        }
+        // Radio...
+        ctx.fillStyle = '#5d4037'; ctx.fillRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
+        ctx.fillStyle = isMusicPlaying ? '#0f0' : '#444'; ctx.beginPath(); ctx.arc(radioPos.x + 10, radioPos.y, 2, 0, Math.PI * 2); ctx.fill();
+        if (isMusicPlaying) { ctx.fillStyle = 'white'; ctx.fillText("♪", radioPos.x, radioPos.y - 15 + Math.sin(Date.now() / 200) * 5); }
+
+        if (customer) {
+            let lbl = (t[curLang].roles[customer.role.toLowerCase()] || customer.role) + (customer.role === 'GAMBLER' ? ` (${customer.bet})` : '');
+            drawEntity(customer.skin, customer.x, customer.y, lbl, customer.state !== 'WAIT', '#e74c3c');
+        }
+
+        ctx.fillStyle = hasDeluxeRadio ? '#8b4513' : '#5d4037'; // Slightly shinier brown for deluxe
+        ctx.fillRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
+
+        // If deluxe, add a little gold trim
+        if (hasDeluxeRadio) {
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
+        }
+    }
+
+    else if (room === 'RIGHT') {
+        ctx.drawImage(bgElion, 0, 0, 600, 600);
+
+        if (elionLocation === 'ROOM_RIGHT') {
+            drawEntity(sprElion, 500, 520, t[curLang].elion.name, false, '#2ecc71');
+
+            // Friendship Bar Background
+            ctx.fillStyle = "#222";
+            ctx.fillRect(450, 440, 100, 6);
+
+            // Friendship Bar Fill (FIXED: Added width and height arguments properly)
+            ctx.fillStyle = elionSat > 30 ? "#9b59b6" : "#e74c3c";
+            ctx.fillRect(450, 440, elionSat, 6);
+        } else {
+            ctx.fillStyle = "rgba(255,255,255,0.4)";
+            ctx.font = "italic 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(curLang === 'en' ? "(He's not here right now...)" : "(Його зараз немає тут)", 500, 520);
+        }
+    }
+
+    else if (room === 'LEFT') {
+        ctx.drawImage(bgShop, 0, 0, 600, 600);
+        drawEntity(sprMerchant, 300, 260, t[curLang].merchant.name, false, '#9b59b6');
+    }
+    else if (room === 'GARDEN') {
+        if (bgGarden.complete && bgGarden.naturalWidth > 0) ctx.drawImage(bgGarden, 0, 0, 600, 600);
+        flowers.forEach(f => {
+            ctx.fillStyle = f.c; ctx.beginPath(); ctx.arc(f.x, f.y, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(f.x, f.y, 3, 0, Math.PI * 2); ctx.fill();
+        });
+        if (player.x < 250 && player.y < 250) {
+            let timeLeft = Math.ceil((RUMOR_DURATION - (Date.now() - lastRumorChangeTime)) / 1000);
+            ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
+            ctx.fillText(t[curLang].journal.read || "Read Board", 110, 100);
+            ctx.font = "10px Arial"; ctx.fillText(`${timeLeft}s`, 110, 115);
+        }
+    }
+    else if (room === 'ROMANTIC') {
+        if (bgRomantic.complete && bgRomantic.naturalWidth > 0) ctx.drawImage(bgRomantic, 0, 0, 600, 600);
+        drawEntity(sprElion, 350, 450, t[curLang].elion.name.split(' ')[0], false, '#2ecc71');
+    }
+    else if (room === 'GOD_FIELD') {
+        if (bgGodField.complete && bgGodField.naturalWidth > 0) ctx.drawImage(bgGodField, 0, 0, 600, 600);
+        else { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 600, 600); }
+        if (godVisible) {
+            let godImg = godForm === 1 ? sprGod1 : sprGod2;
+            drawEntity(godImg, 300, 200, t[curLang].god.name, false, "#fff");
+        }
+    }
+    else if (room === 'CASINO_LOBBY') {
+        ctx.drawImage(bgCasinoLobby, 0, 0, 600, 600);
+        drawEntity(sprReceptionist, 300, 260, (curLang === 'en' ? "RECEPTIONIST" : "АДМІНІСТРАТОР"), false, '#fff');
+
+        // Draw a small exit arrow or text at the bottom when player is near
+        if (player.y > 500) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(curLang === 'en' ? "EXIT" : "ВИХІД", 300, 595);
+        }
+    }
+
+    else if (room === 'CASINO_GAMES') {
+        ctx.drawImage(bgCasinoGames, 0, 0, 600, 600);
+
+        // Draw Dealer 1 (Bottom Left)
+        drawEntity(sprDealer1, 220, 480, (curLang === 'en' ? "DEALER (100G)" : "ДІЛЕР (100З)"), false, '#fff');
+        // Draw Dealer 2 (Top Right)
+        drawEntity(sprDealer2, 490, 290, (curLang === 'en' ? "DEALER (200G)" : "ДІЛЕР (200З)"), false, '#fff');
+    }
+
+
+    else if (room === 'CASINO_PATH') {
+        // Choose the PNG based on current gold
+        let bg = (gold >= 500 || casinoUnlocked) ? bgCasinoOpen : bgCasinoClosed;
+        ctx.drawImage(bg, 0, 0, 600, 600);
+
+
+
+
+
+        // Draw a prompt near the door
+        if (Math.hypot(player.x - 260, player.y - 200) < 100) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(gold >= 500 ? (curLang === 'en' ? "ENTER" : "УВІЙТИ") : (curLang === 'en' ? "READ" : "ЧИТАТИ"), 260, 150);
+        }
+    }
+    else if (room === 'CASINO_INTERIOR') {
+        if (bgCasinoInside.complete && bgCasinoInside.naturalWidth > 0) {
+            ctx.drawImage(bgCasinoInside, 0, 0, 600, 600);
+        } else {
+            ctx.fillStyle = "#111"; // Dark red/black placeholder for casino
+            ctx.fillRect(0, 0, 600, 600);
+            ctx.fillStyle = "white";
+            ctx.fillText("Under Construction...", 300, 300);
+        }
+    }
+
+    // 3. Special Effects (Intervention/Explosion)
+    if (elionGhost) { ctx.globalAlpha = elionGhost.opacity; drawEntity(sprElion, elionGhost.x, elionGhost.y, "ELION", false, '#9b59b6'); ctx.globalAlpha = 1; }
+    if (explosionEffect) { ctx.globalAlpha = explosionEffect.alpha; if (sprExplosion.complete) ctx.drawImage(sprExplosion, explosionEffect.x - explosionEffect.size / 2, explosionEffect.y - explosionEffect.size / 2, explosionEffect.size, explosionEffect.size); ctx.globalAlpha = 1; }
+
+    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
+        // Dim the background a bit to focus on table
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fillRect(0, 0, 600, 600);
+
+        // Draw card pile
+        tarotDeck.forEach(c => {
+            if (!c.selected) {
+                ctx.fillStyle = "#fffdf0";
+                ctx.fillRect(c.x, c.y, c.w, c.h);
+                ctx.strokeStyle = "#3d251e";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(c.x, c.y, c.w, c.h);
+                // Back design
+                ctx.fillStyle = "#ffd700";
+                ctx.beginPath(); ctx.arc(c.x + c.w / 2, c.y + c.h / 2, 8, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // Draw spread
+        selectedTarotCards.forEach((c, i) => {
+            let targetX = 100 + (i * 170);
+            let targetY = 380;
+            c.x += (targetX - c.x) * 0.15;
+            c.y += (targetY - c.y) * 0.15;
+
+            ctx.fillStyle = "#fffdf0";
+            ctx.fillRect(c.x, c.y, c.w, c.h);
+            ctx.strokeStyle = "#3d251e";
+            ctx.strokeRect(c.x, c.y, c.w, c.h);
+
+            if (state === 'TAROT_REVEAL' && tarotRevealIndex > i) {
+                // Revealed card front
+                ctx.fillStyle = c.data.color;
+                ctx.fillRect(c.x + 8, c.y + 8, c.w - 16, c.h - 45);
+                ctx.fillStyle = "#3d251e";
+                ctx.font = "bold 9px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(c.data.name, c.x + c.w / 2, c.y + c.h - 15);
+            }
+        });
+    }
+
+    // Draw Player
+    let pSkin = sprCoviello;
+    if (currentSkin === 'HAT') pSkin = sprCovielloHat;
+    if (currentSkin === 'GAMBLER') pSkin = sprCovielloGambler;
+    drawEntity(pSkin, player.x, player.y, 'COVIELLO', player.isMoving, '#4a6fa5');
+
+    // Draw Journal overlay
+    if (state === 'JOURNAL') {
+        drawJournal();
+    }
+}
+
+// --- HELPER: SPRITE RENDERER ---
+function drawEntity(img, x, y, name, walk, color) {
+    let b = walk ? Math.sin(Date.now() / 120) * 6 : 0;
+    let s = 90;
+    let shakeX = 0, shakeY = 0;
+
+    // Jesse Shaking effect
+    if (name.includes("JESSE") || name.includes("ДЖЕССІ")) {
+        shakeX = (Math.random() - 0.5) * 8;
+        shakeY = (Math.random() - 0.5) * 8;
+    }
+
+    if (!img || !img.complete || img.naturalWidth === 0) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 30 + shakeX, y - 30 + b + shakeY, 60, 60);
+    } else {
+        ctx.drawImage(img, x - (s / 2) + shakeX, y - (s / 2) + b + shakeY, s, s);
+    }
+    ctx.fillStyle = 'white'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
+    ctx.fillText(name, x + shakeX, y - 55 + b + shakeY);
+}
+
+
+
+function drawArrow(x, y, flip) {
+    ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
+    ctx.fillStyle = "#3d251e"; ctx.beginPath();
+    ctx.moveTo(-10, -15); ctx.lineTo(10, 0); ctx.lineTo(-10, 15); ctx.fill();
+    ctx.restore();
+}
+
+function wrapText(text, x, y, maxWidth, lineHeight) {
+    let words = text.split(' '), line = '';
+    for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        if (ctx.measureText(testLine).width > maxWidth) {
+            ctx.fillText(line, x, y); line = words[n] + ' '; y += lineHeight;
+        } else { line = testLine; }
+    }
+    ctx.fillText(line, x, y);
+}
+// Safe translation lookup to prevent freezing if strings.js is missing a key
+function getStr(category, key, fallback) {
+    try {
+        if (t[curLang] && t[curLang][category] && t[curLang][category][key]) {
+            return t[curLang][category][key];
+        }
+    } catch (e) { }
+    return fallback;
+}
+
+function incrementVisitors() {
+    visitorCount++;
+    document.getElementById('visit-val').innerText = visitorCount;
+}
+
+
+function toggleJournal() {
+    journalOpen = !journalOpen;
+    state = journalOpen ? 'JOURNAL' : 'WALK';
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+loop();
+    </script>
 </body>
 
 </html>
