@@ -450,10 +450,1812 @@
         <div id="fortune-options" style="display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <script src="translations/strings.js"></script>
-    <script src="assets.js"></script>
-    <script src="events.js"></script>
-    <script src="game.js"></script>
+
+
+
+
+
+
+
+
+<script>
+
+    const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+
+
+
+// The begining
+let lastMagicGoldTime = Date.now();
+const MAGIC_GOLD_INTERVAL = 30000; // 30 seconds
+let hasDeluxeRadio = false;
+let elionLocation = 'ROOM_RIGHT'; // 'ROOM_RIGHT', 'WAITING_BAZAAR', 'AWAY'
+let lastMilestoneChecked = 0;
+let fortuneActive = false;
+let currentFortuneCard = null;
+let fortuneCorrectIdx = 0;
+
+let gold = 100, inventory = [], room = 'CENTER', state = 'WALK';
+let casinoUnlocked = false;
+let elionSat = 30, visitorCount = 0;
+let lastCustTime = Date.now(), lastFlowerTime = Date.now(), keys = {};
+const player = { x: 300, y: 450, color: '#4a6fa5', isMoving: false, speed: 4 };
+let customer = null, flowers = [], elionGhost = null, explosionEffect = null;
+let kiddoTattling = false;
+let isRainbowRound = false;
+let pHand = [], dHand = [], deck = [];
+let tarotDeck = [];
+let selectedTarotCards = [];
+let tarotRevealIndex = 0;
+
+//elie slide in when elionvacation
+let elionX = 700; // Starts off-screen to the right
+let elionTargetX = 500; // Where he stops in the Bazaar
+let elionY = 400;
+
+// RUMORS
+let lastRumorChangeTime = Date.now();
+let activeRumorEffect = "none";
+let currentRumorIndex = 0;
+const RUMOR_DURATION = 120000; // 2 minutes in milliseconds
+
+const rumors = [
+    { text: "Rumor: A wealthy Sultan is visiting the bazaar!", effect: "rich_shoppers" },
+    { text: "Rumor: The tax collector is in a foul mood today...", effect: "angry_collector" },
+    { text: "Rumor: Blue lilies are blooming, Elion loves those.", effect: "flower_boost" },
+    { text: "Rumor: Magical rainbows have been spotted near the oasis.", effect: "rainbow_luck" },
+
+    { text: "Rumor: Jesse was seen arguing with a cactus again.", effect: "none" },
+    { text: "Rumor: Someone saw a shadow moving in the Void... Creepy.", effect: "none" },
+    { text: "Rumor: The Merchant is having a sale on 'slightly' used magic rugs.", effect: "none" },
+    { text: "Rumor: Kiren is looking for a map to a city made of gold.", effect: "none" },
+];
+
+
+
+
+// TRANSLATIONS
+let curLang = 'en';
+const t = translations.t;
+const charLore = translations.charLore;
+
+function toggleLang() {
+    curLang = curLang === 'en' ? 'ua' : 'en';
+    document.getElementById('interact-hint').innerText = t[curLang].hint;
+    document.getElementById('hit-btn').innerText = t[curLang].bj.hit;
+    document.getElementById('stand-btn').innerText = t[curLang].bj.stand;
+}
+
+
+
+const bgBazaar = new Image();
+bgBazaar.src = 'assets/images/input_file_0.png';
+
+const bgElion = new Image();
+bgElion.src = 'assets/images/input_file_1.png';
+
+const bgShop = new Image();
+bgShop.src = 'assets/images/input_file_2.png';
+
+const bgGarden = new Image();
+bgGarden.src = 'assets/images/garden.png';
+
+const bgRomantic = new Image();
+bgRomantic.src = 'assets/images/romantic.png';
+
+const bgGodField = new Image();
+bgGodField.src = 'assets/images/input_file_3.png';
+
+const bgTarotMode = new Image();
+bgTarotMode.src = 'assets/images/tarot_bg.png';
+
+const bgCasinoClosed = new Image();
+bgCasinoClosed.src = 'assets/images/casino_closed.png';
+
+const bgCasinoOpen = new Image();
+bgCasinoOpen.src = 'assets/images/casino_open.png';
+
+const bgCasinoInside = new Image(); ///////
+bgCasinoInside.src = 'assets/images/casino_inside.png';
+
+const bgCasinoLobby = new Image();
+bgCasinoLobby.src = 'assets/images/casinolobby.png';
+
+const bgCasinoGames = new Image();
+bgCasinoGames.src = 'assets/images/casinogames.png';
+
+
+
+
+
+// Characters
+const sprCoviello = new Image();
+sprCoviello.src = 'assets/images/coviello.png';
+
+const sprCovielloHat = new Image();
+sprCovielloHat.src = 'assets/images/coviello_hat.png';
+
+const sprCovielloGambler = new Image();
+sprCovielloGambler.src = 'assets/images/coviello_gambler.png';
+
+let ownedSkins = ['DEFAULT'];
+let currentSkin = 'DEFAULT';
+
+const sprElion = new Image();
+sprElion.src = 'assets/images/elion.png';
+
+const sprMerchant = new Image();
+sprMerchant.src = 'assets/images/merchant.png';
+
+const sprCust1 = new Image();
+sprCust1.src = 'assets/images/customer1.png';
+
+const sprCust2 = new Image();
+sprCust2.src = 'assets/images/customer2.png';
+
+const sprCust3 = new Image();
+sprCust3.src = 'assets/images/customer3.png';
+
+const sprCust4 = new Image();
+sprCust4.src = 'assets/images/customer4.png';
+
+const sprCust5 = new Image();
+sprCust5.src = 'assets/images/customer5.png';
+
+const sprCollector = new Image();
+sprCollector.src = 'assets/images/collector.png';
+
+const sprKiren = new Image();
+sprKiren.src = 'assets/images/kiren.png';
+
+const sprKiddo = new Image();
+sprKiddo.src = 'assets/images/kiddo.png';
+
+const sprJesse = new Image();
+sprJesse.src = 'assets/images/jesse.png';
+
+const sprRainbow = new Image();
+sprRainbow.src = 'assets/images/rainbow.png';
+
+const sprExplosion = new Image();
+sprExplosion.src = 'assets/images/explosion.png';
+
+const sprGod1 = new Image();
+sprGod1.src = 'assets/images/god1.png';
+
+const sprGod2 = new Image();
+sprGod2.src = 'assets/images/god2.png';
+
+const sprDealer1 = new Image();
+sprDealer1.src = 'assets/images/dealer1.png';
+
+const sprDealer2 = new Image();
+sprDealer2.src = 'assets/images/dealer2.png';
+
+const sprReceptionist = new Image();
+sprReceptionist.src = 'assets/images/receptionist.png';
+
+
+
+
+
+// фіксер на f12
+[
+    { name: 'Coviello', img: sprCoviello },
+    { name: 'Bazaar BG', img: bgBazaar },
+    { name: 'Merchant', img: sprMerchant }
+].forEach(item => {
+    item.img.onload = () => console.log("✅ SUCCESS: Found " + item.name);
+    item.img.onerror = () => console.error("❌ ERROR: Cannot find " + item.name + " at " + item.img.src);
+});
+
+
+
+
+// Journal variables
+let journalOpen = false;
+let journalTab = 'characters'; // or 'tutorial'
+let charPageIndex = 0;
+const TOTAL_CHARACTERS = 14;
+let metCharacters = new Set(['COVIELLO']); // Coviello is always met
+
+//Journal Images
+const bgJournalChar = new Image(); bgJournalChar.src = 'assets/images/JournalChar.png';
+const bgJournalTut = new Image(); bgJournalTut.src = 'assets/images/JournalTut.png';
+
+// God scene variables
+let offScreenTimer = 0;
+let godSequenceActive = false;
+let godTimer = 0;
+let godForm = 1;
+let godVisible = false;
+let godDialogueStep = 0;
+let godInteractable = false;
+
+// MUSIC
+const tracks = ['assets/audio/track1.mp3', 'assets/audio/track2.mp3', 'assets/audio/track3.mp3', 'assets/audio/track4.mp3', 'assets/audio/track5.mp3', 'assets/audio/track6.mp3', 'assets/audio/track7.mp3', 'assets/audio/track8.mp3', 'assets/audio/track9.mp3', 'assets/audio/track10.mp3'];
+let currentTrackIdx = 0;
+let isMusicPlaying = false;
+const audioPlayer = new Audio();
+const radioPos = { x: 125, y: 220, w: 40, h: 30 };
+
+audioPlayer.onended = () => { skipTrack(); };
+
+function toggleMusic() {
+    if (!isMusicPlaying) {
+        audioPlayer.src = tracks[currentTrackIdx];
+        audioPlayer.play().catch(e => console.log("Audio blocked."));
+        isMusicPlaying = true;
+    } else {
+        audioPlayer.pause();
+        isMusicPlaying = false;
+    }
+    openRadioMenu();
+}
+
+function skipTrack() {
+    // If deluxe, use tracks 0-9 (10 songs). If normal, use tracks 0-6 (7 songs).
+    const maxTracks = hasDeluxeRadio ? 10 : 7;
+    currentTrackIdx = (currentTrackIdx + 1) % maxTracks;
+
+    if (isMusicPlaying) {
+        audioPlayer.src = tracks[currentTrackIdx];
+        audioPlayer.play();
+    }
+    if (state === 'DIALOGUE') openRadioMenu();
+}
+
+const masterItems = [
+    { name: "Enchanted Candy", cost: 15, sat: 5 },
+    { name: "Starlight Tea", cost: 50, sat: 15 },
+    { name: "Cosmic Scarf", cost: 80, sat: 25 },
+    { name: "Silk Pillow", cost: 60, sat: 20 },
+    { name: "Ancient Coin", cost: 100, sat: 25 },
+    { name: "Rare Spices", cost: 30, sat: 10 }
+];
+
+function drawIcons() {
+    const cCtx = document.getElementById('coinIcon').getContext('2d'); cCtx.fillStyle = '#ffd700'; cCtx.fillRect(2, 2, 16, 16);
+    const vCtx = document.getElementById('visitorIcon').getContext('2d'); vCtx.fillStyle = '#fff'; vCtx.fillRect(6, 2, 8, 8); vCtx.fillRect(4, 10, 12, 8);
+    const gCtx = document.getElementById('giftIcon').getContext('2d'); gCtx.fillStyle = '#8e44ad'; gCtx.fillRect(2, 4, 16, 14);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    drawIcons();
+canvas.onclick = e => {
+
+    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
+        ctx.clearRect(0, 0, 600, 600);
+
+        if (bgTarotMode.complete) {
+            ctx.drawImage(bgTarotMode, 0, 0, 600, 600);
+        } else {
+            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, 600, 600);
+        }
+
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        // Only allow clicking in the bottom half
+        if (my > 350) {
+            for (let i = tarotDeck.length - 1; i >= 0; i--) {
+                let c = tarotDeck[i];
+                if (mx > c.x && mx < c.x + c.w && my > c.y && my < c.y + c.h && !c.selected) {
+                    c.selected = true;
+                    selectedTarotCards.push(c);
+
+                    if (selectedTarotCards.length === 3) {
+                        state = 'TAROT_REVEAL';
+                        // Show the dialogue box in the bottom half
+                        const box = document.getElementById('dialogue-box');
+                        box.style.display = 'block';
+                        box.classList.add('ending-mode'); // Use your compact style
+                        nextTarotCard();
+                    }
+                    break;
+                }
+            }
+        }
+        return;
+    }
+
+
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    if (state === 'JOURNAL') {
+        // --- BOOKMARK CLICKS ---
+        // Blue Bookmark (Characters) - Leftmost tab
+        if (mx > 120 && mx < 185 && my > 50 && my < 150) {
+            journalTab = 'characters';
+            charPageIndex = 0;
+        }
+        // Green Bookmark (Tutorial) - Second tab
+        if (mx > 190 && mx < 250 && my > 50 && my < 150) {
+            journalTab = 'tutorial';
+        }
+
+        // --- NAVIGATION ARROWS ---
+        if (journalTab === 'characters') {
+            const discovered = Array.from(metCharacters);
+            // Click Left side of book
+            if (mx > 50 && mx < 150 && my > 200 && my < 450) {
+                charPageIndex = (charPageIndex - 1 + discovered.length) % discovered.length;
+            }
+            // Click Right side of book
+            if (mx > 450 && mx < 550 && my > 200 && my < 450) {
+                charPageIndex = (charPageIndex + 1) % discovered.length;
+            }
+        }
+        return; // Prevent other clicks while journal is open
+    }
+
+    // --- RADIO INTERACTION---
+    const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
+    if (nearRadio && Math.hypot(mx - radioPos.x, my - radioPos.y) < 50) {
+        toggleMusic();
+    }
+
+};
+
+
+// BUTTONS
+window.onkeydown = e => {
+    keys[e.code] = true;
+    const isInteractKey = (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'NumpadEnter');
+
+    // Toggle Journal with J
+    if (e.code === 'KeyJ') {
+        if (state === 'WALK' || state === 'JOURNAL') {
+            toggleJournal();
+        }
+    }
+
+    if (state === 'WALK' && isInteractKey) {
+        e.preventDefault();
+        handleInteraction();
+    }
+
+    // Navigation inside Journal
+    if (state === 'JOURNAL') {
+        if (e.code === 'ArrowRight') { charPageIndex = (charPageIndex + 1) % metCharacters.size; }
+        if (e.code === 'ArrowLeft') { charPageIndex = (charPageIndex - 1 + metCharacters.size) % metCharacters.size; }
+    }
+
+    if (state === 'GOD_READY' && isInteractKey) {
+        e.preventDefault();
+        startGodDialogue();
+    }
+    if (state === 'ENDING' && isInteractKey) {
+        e.preventDefault();
+        advanceEnding();
+    }
+    if (state === 'BJ') {
+        if (e.code === 'KeyH') hit();
+        if (e.code === 'KeyS') stand();
+    }
+};
+window.onkeyup = e => keys[e.code] = false;
+
+
+function checkCollision(nx, ny) {
+    if (state !== 'WALK' && state !== 'GOD_READY') return true;
+
+    // The 'p' is the padding (hitbox size). 
+    // Since Coviello is 60px wide, 20-25px padding makes him look like he has 'weight'.
+    const p = 20;
+
+    if (room === 'CENTER') {
+        // left and right
+        if (nx < p && ny < 200) return true;
+        if (nx > 600 - p && ny < 180) return true;
+
+
+        if (ny > 170 - p && ny < 260 + p && nx > 70 - p && nx < 530 + p) return true; // table centre
+        if (ny > 260 - p && ny < 350 + p && nx > 70 - p && nx < 130 + p) return true; // table left
+        if (ny > 260 - p && ny < 280 + p && nx > 430 - p && nx < 450 + p) return true; // wase
+        if (ny > 260 - p && ny < 350 + p && nx > 470 - p && nx < 530 + p) return true; // table right
+        if (ny > 520 - p && nx > 70 - p && nx < 530 + p) return true; // table down
+
+        // interaction
+        if (customer && customer.state === 'WAIT' && Math.hypot(nx - customer.x, ny - customer.y) < 50) return true;
+
+        // bottom
+        if (ny > 580) return true;
+    }
+
+    if (room === 'RIGHT') {
+        // Top walls
+        if (nx < 140 + p && ny < 110 + p) return true; // lamp
+        if (nx > 160 - p && nx < 450 + p && ny < 70 + p) return true;
+        if (nx > 410 - p && ny < 100 + p) return true; // closet
+        if (nx > 230 - p && nx < 375 + p && ny > 160 - p && ny < 400 + p) return true;  // table
+
+        // elion collision
+        if (elionLocation === 'ROOM_RIGHT' && Math.hypot(nx - 500, ny - 520) < 60) return true;
+
+        // boundaries
+        if (ny > 580) return true;
+        if (nx > 600 - p) return true;
+    }
+
+    if (room === 'LEFT') {
+        if (ny < 200 + p || ny > 580) return true;
+        // counter
+        if (ny < 230 + p && nx > 130 - p && nx < 480 + p) return true;
+        // collision with merchant
+        if (Math.hypot(nx - 300, ny - 260) < 60) return true;
+    }
+
+    if (room === 'GARDEN') {
+        // exit hole down
+        if (ny > 580 && nx > 50 && nx < 500) return false;
+        // borders
+        if (ny < 100 + p || ny > 580 || nx > 580 - p) return true;
+    }
+
+    if (room === 'GOD_FIELD') {
+        if (ny < 300 || ny > 580) return true;
+    }
+
+
+    if (room === 'CASINO_PATH') {
+        const p = 20;
+        // Block the building on the left (Adjusted nx to 230 so door is accessible)
+        if (nx < 230) return true;
+        // Block the top wall area
+        if (ny < 120) return true;
+        // Block the trash can (bottom left)
+        if (nx < 160 && ny > 450) return true;
+        // Block the bottom edge
+        if (ny > 580) return true;
+        return false;
+    }
+
+
+    if (room === 'CASINO_LOBBY') {
+        const p = 20;
+        // collision with receptionist
+        if (Math.hypot(nx - 300, ny - 260) < 60) return true;
+        //counter
+        if (ny < 270 && nx > 100 && nx < 500) return true;
+        //top wall
+        if (ny < 110) return true;
+        //right wall (no exit there)
+        if (nx > 580) return true;
+        // Block left wall EXCEPT for the doorway to the Games Room
+        if (nx < 20 && (ny < 300)) return true;
+        return false;
+    }
+
+    if (room === 'CASINO_GAMES') {
+        const p = 15;
+
+        // dealers
+        if (Math.hypot(nx - 220, ny - 480) < 60) return true;
+        if (Math.hypot(nx - 500, ny - 290) < 60) return true;
+
+        // table bottom
+        if (ny > 299 - p && ny < 400 + p && nx < 280 - p) return true;
+
+        // нижній стілець
+        if (ny > 400 - p && ny < 470 + p && nx > 120 - p && nx < 180 + p) return true;
+
+        // ВЕРХНІЙ СТІЛ
+        if (nx > 350 - p && ny < 280 + p) return true;
+
+        //plant
+        if (ny < 130 + p && nx < 75 + p) return true;
+
+        // верхня стіна
+        if (ny < 110) return true;
+
+        // ліва стіна
+        if (nx < 10) return true;
+
+        // bottom boundary
+        if (ny > 580) return true;
+        return false;
+    }
+
+
+
+
+    return false;
+}
+
+function isGrass(x, y) {
+    // Bulletin Board Area (Top Left)
+    if (x < 220 && y < 220) return false;
+    // Vertical Path (The middle stone road)
+    if (x > 240 && x < 380) return false;
+    // Horizontal Path (The side road)
+    if (y > 140 && y < 250 && x < 300) return false;
+    return true;
+}
+
+function update() {
+
+    // --- INSTANT ENDING CHECK ---
+    if (elionSat >= 100 && state !== 'ENDING' && room !== 'ROMANTIC') {
+        triggerEnding();
+        return;
+    }
+
+    if (state === 'ENDING') return;
+
+    // GOD FIELD TRANSITION (15 SECONDS)
+    if (room === 'LEFT' && player.x < -10) {
+        offScreenTimer++;
+        if (offScreenTimer > 900) { // 15 seconds at 60fps
+            room = 'GOD_FIELD';
+            player.x = 300;
+            offScreenTimer = 0;
+            godSequenceActive = true;
+            godTimer = 0;
+            godForm = 1;
+            godVisible = true;
+            godInteractable = false;
+            state = 'GOD_WAIT';
+        }
+    } else if (room === 'GOD_FIELD' && (player.x < -10 || player.x > 610)) {
+        offScreenTimer++;
+        if (offScreenTimer > 900) { // 15 seconds at 60fps
+            room = 'LEFT';
+            player.x = 50;
+            offScreenTimer = 0;
+        }
+    } else {
+        offScreenTimer = 0;
+    }
+
+    // GOD SEQUENCE LOGIC
+    if (godSequenceActive && state === 'GOD_WAIT') {
+        godTimer++;
+        if (godTimer > 700) { // form 1 stays for 5 seconds
+            godForm = 2;
+            godInteractable = true;
+            state = 'GOD_READY';
+        }
+    }
+
+    //Casinooo
+
+    // --- CASINO TRANSITIONS ---
+    if (room === 'CASINO_LOBBY') {
+        // 1. Walk LEFT to enter the Games Room
+        if (player.x < -15) {
+            room = 'CASINO_GAMES';
+            player.x = 580;
+        }
+        // 2. Walk DOWN to leave the Casino
+        if (player.y > 615) {
+            room = 'CASINO_PATH';
+            player.x = 260; // Appear in front of the door
+            player.y = 260;
+        }
+    }
+    else if (room === 'CASINO_GAMES') {
+        // Walk RIGHT to go back to the Lobby
+        if (player.x > 615) {
+            room = 'CASINO_LOBBY';
+            player.x = 20;
+        }
+    }
+
+    // --- ALLEY TO GARDEN ---
+    else if (room === 'CASINO_PATH') {
+        if (player.x > 615) {
+            room = 'GARDEN';
+            player.x = 50;
+        }
+    }
+
+    if (state === 'INTERVENTION') {
+        if (elionGhost.stage === 'TELEPORT') { elionGhost.opacity += 0.02; if (elionGhost.opacity >= 1) { elionGhost.x = elionGhost.targetX; elionGhost.y = elionGhost.targetY; elionGhost.stage = 'CHARGE'; elionGhost.timer = 120; } }
+        else if (elionGhost.stage === 'CHARGE') { elionGhost.timer--; if (elionGhost.timer <= 0) { elionGhost.stage = 'BLAST'; explosionEffect = { x: customer.x, y: customer.y, size: 0, alpha: 1 }; } }
+        else if (elionGhost.stage === 'BLAST') { customer.x += 4; explosionEffect.size += 3; if (customer.x > 700) elionGhost.stage = 'FADE'; }
+        else if (elionGhost.stage === 'FADE') { elionGhost.opacity -= 0.015; explosionEffect.alpha -= 0.01; if (elionGhost.opacity <= 0) { state = 'WALK'; elionGhost = null; explosionEffect = null; customer = null; lastCustTime = Date.now(); } }
+        return;
+    }
+
+    if (state !== 'WALK' && state !== 'GOD_WAIT' && state !== 'GOD_READY') return;
+    if (elionSat >= 25) player.speed = 6; else if (elionSat < 20) player.speed = 2.5; else player.speed = 4;
+    let perkList = [];
+    if (elionSat < 20) perkList.push(t[curLang].perks.tired);
+    if (elionSat >= 25) perkList.push(t[curLang].perks.happy);
+    if (elionSat >= 50) perkList.push(t[curLang].perks.gilded);
+    if (elionSat >= 75) perkList.push(t[curLang].perks.oracle);
+    document.getElementById('perks-display').innerText = perkList.join(" | ");
+
+    let mx = 0, my = 0;
+    if (keys['KeyW'] || keys['ArrowUp']) my -= player.speed;
+    if (keys['KeyS'] || keys['ArrowDown']) my += player.speed;
+    if (keys['KeyA'] || keys['ArrowLeft']) mx -= player.speed;
+    if (keys['KeyD'] || keys['ArrowRight']) mx += player.speed;
+
+    if (!checkCollision(player.x + mx, player.y + my)) { player.x += mx; player.y += my; player.isMoving = (mx !== 0 || my !== 0); } else player.isMoving = false;
+
+    if (player.x < -15) { if (room === 'CENTER') { room = 'LEFT'; player.x = 580; } else if (room === 'RIGHT') { room = 'CENTER'; player.x = 580; } }
+    else if (player.x > 615) { if (room === 'CENTER') { room = 'RIGHT'; player.x = 20; } else if (room === 'LEFT') { room = 'CENTER'; player.x = 20; } }
+    else if (player.y < -15 && room === 'CENTER') { room = 'GARDEN'; player.y = 570; }
+    else if (player.y > 615 && room === 'GARDEN') { room = 'CENTER'; player.y = 50; }
+
+    // --- ELION'S SHIFT SCHEDULE ---
+    let currentMilestone = Math.floor(visitorCount / 20);
+    if (currentMilestone > lastMilestoneChecked && currentMilestone > 0) {
+        lastMilestoneChecked = currentMilestone;
+
+        if (currentMilestone % 2 === 1) {
+            // Odd milestones (20, 60, 100...): Elion comes out (not in a gay way)
+            elionLocation = 'WAITING_BAZAAR';
+            elionX = 700;
+        } else {
+            // Even milestones (40, 80, 120...): Elion returns
+            elionLocation = 'ROOM_RIGHT';
+        }
+    }
+    if (elionLocation === 'WAITING_BAZAAR') {
+        if (elionX > elionTargetX) {
+            elionX -= 2; // Walking speed
+        }
+    }
+
+    /// CHANCES OF CHARACTERS TO APPEAR
+    if (room === 'CENTER' && !customer && Date.now() - lastCustTime > 7000) {
+        let r = Math.random();
+        let role = 'SHOPPER';
+        let collectorChance = (activeRumorEffect === "angry_collector") ? 0.15 : 0.05;
+        // Fortune seekers only appear when Elion is AWAY
+        let elionLeftForVacation = (elionLocation === 'AWAY');
+
+        // Clean probability ranges (0.0 to 1.0)
+        if (elionLeftForVacation && r < 0.35) {
+            role = 'FORTUNE'; // 35% chance once Elion is on vacation
+        } else if (r < 0.02) {
+            role = 'RAINBOW'; // 2% chance
+        } else if (r < 0.02 + collectorChance) {
+            role = 'DEBT';    // 5% (or 15% with rumor) chance
+        } else if (r < 0.08) {
+            role = 'KIREN';   // ~6% chance
+        } else if (r < 0.10) {
+            role = 'JESSE';   // ~2% chance
+        } else if (r < 0.16) {
+            role = 'KIDDO';   // ~6% chance
+        } else if (r < 0.70) {
+            role = 'GAMBLER'; // ~34% chance
+        } else {
+            role = 'SHOPPER'; // Remaining percentage
+        }
+
+        let skins = [sprCust1, sprCust2, sprCust3];
+        let skin = skins[Math.floor(Math.random() * 3)];
+        if (role === 'DEBT') skin = sprCollector;
+        if (role === 'KIREN') skin = sprKiren;
+        if (role === 'KIDDO') skin = sprKiddo;
+        if (role === 'JESSE') skin = sprJesse;
+        if (role === 'RAINBOW') skin = sprRainbow;
+        if (role === 'FORTUNE') skin = skins[Math.floor(Math.random() * 3)];
+
+        customer = {
+            x: 300, y: -50, targetY: 140, state: 'IN',
+            role: role, skin: skin,
+            bet: Math.floor(Math.random() * 40) + 10
+        };
+    }
+    if (customer) {
+        if (customer.state === 'IN') { customer.y += 2; if (customer.y >= customer.targetY) { customer.state = 'WAIT'; } }
+        else if (customer.state === 'OUT') { if (customer.targetX) customer.x += 4; else customer.y -= 3; if (customer.y < -50 || customer.x > 650) { customer = null; lastCustTime = Date.now(); } }
+    }
+
+
+
+
+    if (room === 'GARDEN' && flowers.length < 8 && Date.now() - lastFlowerTime > 8000) {
+        let testX = 50 + Math.random() * 500;
+        let testY = 120 + Math.random() * 430;
+
+        if (isGrass(testX, testY)) {
+            flowers.push({
+                x: testX,
+                y: testY,
+                c: `hsl(${Math.random() * 360}, 80%, 60%)`
+            });
+            lastFlowerTime = Date.now();
+            console.log("🌸 A flower has grown at:", testX, testY);
+        } else {
+            // If it tried to spawn on a path, let it try again very soon
+            lastFlowerTime = Date.now() - 4500;
+        }
+    }
+
+    // Random Rumor Timer (Changes to a random rumor every 2 minutes)
+    if (Date.now() - lastRumorChangeTime > RUMOR_DURATION) {
+        // Pick a random index based on the list size
+        currentRumorIndex = Math.floor(Math.random() * t.en.rumors.length);
+
+        // Set the effect (always uses the 'en' version's effect key)
+        activeRumorEffect = t.en.rumors[currentRumorIndex].effect;
+
+        lastRumorChangeTime = Date.now();
+        console.log("New Rumor Active: " + activeRumorEffect);
+    }
+
+
+    if (room === 'GARDEN' && player.x < -15) {
+        room = 'CASINO_PATH';
+        player.x = 550; // Come in from the right side of the alley
+    } else if (room === 'CASINO_PATH' && player.x > 615) {
+        room = 'GARDEN';
+        player.x = 50; // Go back to the Garden
+    }
+
+
+
+    //location of charctrs n things
+    // Check ranges for the "Press E" hint
+    const nearFlower = room === 'GARDEN' && flowers.some(f => Math.hypot(player.x - f.x, player.y - f.y) < 50);
+    const nearCust = room === 'CENTER' && customer?.state === 'WAIT' && Math.abs(player.y - customer.y) < 150;
+    const nearElion = (room === 'RIGHT' && elionLocation === 'ROOM_RIGHT' && Math.hypot(player.x - 500, player.y - 520) < 120) ||
+        (room === 'CENTER' && elionLocation === 'WAITING_BAZAAR' && Math.hypot(player.x - elionX, player.y - elionY) < 120);
+    (room === 'CENTER' && Math.hypot(player.x - 500, player.y - 530) < 120);
+    const nearShop = room === 'LEFT' && player.y < 450 && Math.abs(player.x - 300) < 150;
+    const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
+    const nearGod = room === 'GOD_FIELD' && godInteractable && Math.hypot(player.x - 300, player.y - 200) < 150;
+    const nearTarot = room === 'RIGHT' && Math.abs(player.x - 300) < 100 && player.y < 420;
+    const nearBoard = room === 'GARDEN' && player.x < 260 && player.y < 170;
+
+    // Update the hint display
+    document.getElementById('interact-hint').style.display =
+        (nearFlower || nearCust || nearElion || nearShop || nearRadio || nearGod || nearBoard || nearTarot) ? 'block' : 'none';
+}
+
+function drawJournal() {
+    ctx.fillStyle = "rgba(0,0,0,0.85)";
+    ctx.fillRect(0, 0, 600, 600);
+
+    const bg = (journalTab === 'characters') ? bgJournalChar : bgJournalTut;
+    if (bg.complete && bg.naturalWidth > 0) {
+        ctx.drawImage(bg, 50, 50, 500, 500);
+    }
+
+    if (journalTab === 'characters') {
+        const discovered = Array.from(metCharacters);
+        const role = discovered[charPageIndex];
+        const data = charLore[role] || { en: "???", ua: "???" };
+
+        // 1. Draw Sprite on Right Page
+        let skin = sprCoviello;
+        if (role === 'ELION') skin = sprElion;
+        else if (role === 'MERCHANT') skin = sprMerchant;
+        else if (role === 'KIREN') skin = sprKiren;
+        else if (role === 'JESSE') skin = sprJesse;
+        else if (role === 'RAINBOW') skin = sprRainbow;
+        else if (role === 'KIDDO') skin = sprKiddo;
+        else if (role === 'COLLECTOR') skin = sprCollector;
+        else if (role === 'SHOPPER') skin = sprCust1;
+        else if (role === 'GAMBLER') skin = sprCust3;
+        else if (role === 'RECEPTIONIST') skin = sprReceptionist;
+        else if (role === 'CASINO_DEALER') skin = sprDealer1;
+        else if (role === 'FORTUNE') skin = sprCust4;
+        else if (role === 'GOD') skin = sprGod1;
+
+        if (skin.complete) ctx.drawImage(skin, 340, 180, 130, 130);
+
+        // 2. Draw Text on Left Page
+        ctx.fillStyle = "#3d251e";
+        ctx.textAlign = "left";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText(role, 115, 200);
+        ctx.font = "14px Arial";
+        wrapText(data[curLang], 115, 215, 170, 20);
+
+        // 3. PROGRESS BAR (Bottom of Left Page)
+        const barX = 115;
+        const barY = 460;
+        const barW = 150;
+        const barH = 12;
+
+        // Bar Background
+        ctx.fillStyle = "#d2b48c";
+        ctx.fillRect(barX, barY, barW, barH);
+
+        // Bar Fill
+        const progress = metCharacters.size / TOTAL_CHARACTERS;
+        ctx.fillStyle = "#9b59b6"; // Purple theme
+        ctx.fillRect(barX, barY, barW * progress, barH);
+
+        // Bar Outline
+        ctx.strokeStyle = "#3d251e";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(barX, barY, barW, barH);
+
+        // Text
+        ctx.fillStyle = "#3d251e";
+        ctx.font = "bold 10px Arial";
+        ctx.fillText(`${metCharacters.size} / ${TOTAL_CHARACTERS} FOUND`, barX, barY - 5);
+
+        // 4. Visual Arrows
+        ctx.fillStyle = "#3d251e";
+        ctx.beginPath(); ctx.moveTo(70, 300); ctx.lineTo(90, 280); ctx.lineTo(90, 320); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(530, 300); ctx.lineTo(510, 280); ctx.lineTo(510, 320); ctx.fill();
+    }
+}
+
+// --- MASTER DRAWING LOOP ---
+function draw() {
+
+
+    // --- TAROT MODE OVERRIDE ---
+    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
+        ctx.clearRect(0, 0, 600, 600);
+
+        // 1. Draw background
+        if (bgTarotMode.complete && bgTarotMode.naturalWidth > 0) {
+            ctx.drawImage(bgTarotMode, 0, 0, 600, 600);
+        } else {
+            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, 600, 600); // Dark fallback
+        }
+
+        // 2. Draw the pile at the bottom
+        tarotDeck.forEach(c => {
+            if (!c.selected) {
+                ctx.fillStyle = "#fffdf0";
+                ctx.fillRect(c.x, c.y, c.w, c.h);
+                ctx.strokeStyle = "#3d251e";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(c.x, c.y, c.w, c.h);
+                // Moon design
+                ctx.fillStyle = "#ffd700";
+                ctx.beginPath(); ctx.arc(c.x + c.w / 2, c.y + c.h / 2, 6, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // 3. Draw the spread at the top
+        selectedTarotCards.forEach((c, i) => {
+            let targetX = 60 + (i * 100); // Top left spread
+            let targetY = 60;
+
+            c.x += (targetX - c.x) * 0.1;
+            c.y += (targetY - c.y) * 0.1;
+
+            ctx.fillStyle = "#fffdf0";
+            ctx.fillRect(c.x, c.y, c.w, c.h);
+            ctx.strokeStyle = "#3d251e";
+            ctx.strokeRect(c.x, c.y, c.w, c.h);
+
+            if (state === 'TAROT_REVEAL' && tarotRevealIndex > i) {
+                ctx.fillStyle = c.data.color;
+                ctx.fillRect(c.x + 5, c.y + 5, c.w - 10, c.h - 35);
+                ctx.fillStyle = "#3d251e";
+                ctx.font = "bold 7px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(c.data.name, c.x + c.w / 2, c.y + c.h - 10);
+            }
+        });
+        return; // Stop RPG drawing
+    }
+
+    ctx.clearRect(0, 0, 600, 600);
+
+    if (room === 'CENTER') {
+        ctx.drawImage(bgBazaar, 0, 0, 600, 600);
+        // If Elion came out to complain, draw him waiting on the right side of the bazaar (x: 500, y: 300)
+        if (elionLocation === 'WAITING_BAZAAR' && !elionGhost) {
+            let isWalking = (elionX > elionTargetX);
+            drawEntity(sprElion, elionX, elionY, "ELION", isWalking, '#9b59b6');
+        }
+        // Radio...
+        ctx.fillStyle = '#5d4037'; ctx.fillRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
+        ctx.fillStyle = isMusicPlaying ? '#0f0' : '#444'; ctx.beginPath(); ctx.arc(radioPos.x + 10, radioPos.y, 2, 0, Math.PI * 2); ctx.fill();
+        if (isMusicPlaying) { ctx.fillStyle = 'white'; ctx.fillText("♪", radioPos.x, radioPos.y - 15 + Math.sin(Date.now() / 200) * 5); }
+
+        if (customer) {
+            let lbl = (t[curLang].roles[customer.role.toLowerCase()] || customer.role) + (customer.role === 'GAMBLER' ? ` (${customer.bet})` : '');
+            drawEntity(customer.skin, customer.x, customer.y, lbl, customer.state !== 'WAIT', '#e74c3c');
+        }
+
+        ctx.fillStyle = hasDeluxeRadio ? '#8b4513' : '#5d4037'; // Slightly shinier brown for deluxe
+        ctx.fillRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
+
+        // If deluxe, add a little gold trim
+        if (hasDeluxeRadio) {
+            ctx.strokeStyle = '#ffd700';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(radioPos.x - 15, radioPos.y - 10, 30, 20);
+        }
+    }
+
+    else if (room === 'RIGHT') {
+        ctx.drawImage(bgElion, 0, 0, 600, 600);
+
+        if (elionLocation === 'ROOM_RIGHT') {
+            drawEntity(sprElion, 500, 520, t[curLang].elion.name, false, '#2ecc71');
+
+            // Friendship Bar Background
+            ctx.fillStyle = "#222";
+            ctx.fillRect(450, 440, 100, 6);
+
+            // Friendship Bar Fill (FIXED: Added width and height arguments properly)
+            ctx.fillStyle = elionSat > 30 ? "#9b59b6" : "#e74c3c";
+            ctx.fillRect(450, 440, elionSat, 6);
+        } else {
+            ctx.fillStyle = "rgba(255,255,255,0.4)";
+            ctx.font = "italic 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(curLang === 'en' ? "(He's not here right now...)" : "(Його зараз немає тут)", 500, 520);
+        }
+    }
+
+    else if (room === 'LEFT') {
+        ctx.drawImage(bgShop, 0, 0, 600, 600);
+        drawEntity(sprMerchant, 300, 260, t[curLang].merchant.name, false, '#9b59b6');
+    }
+    else if (room === 'GARDEN') {
+        if (bgGarden.complete && bgGarden.naturalWidth > 0) ctx.drawImage(bgGarden, 0, 0, 600, 600);
+        flowers.forEach(f => {
+            ctx.fillStyle = f.c; ctx.beginPath(); ctx.arc(f.x, f.y, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(f.x, f.y, 3, 0, Math.PI * 2); ctx.fill();
+        });
+        if (player.x < 250 && player.y < 250) {
+            let timeLeft = Math.ceil((RUMOR_DURATION - (Date.now() - lastRumorChangeTime)) / 1000);
+            ctx.fillStyle = "white"; ctx.font = "bold 14px Arial"; ctx.textAlign = "center";
+            ctx.fillText(t[curLang].journal.read || "Read Board", 110, 100);
+            ctx.font = "10px Arial"; ctx.fillText(`${timeLeft}s`, 110, 115);
+        }
+    }
+    else if (room === 'ROMANTIC') {
+        if (bgRomantic.complete && bgRomantic.naturalWidth > 0) ctx.drawImage(bgRomantic, 0, 0, 600, 600);
+        drawEntity(sprElion, 350, 450, t[curLang].elion.name.split(' ')[0], false, '#2ecc71');
+    }
+    else if (room === 'GOD_FIELD') {
+        if (bgGodField.complete && bgGodField.naturalWidth > 0) ctx.drawImage(bgGodField, 0, 0, 600, 600);
+        else { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 600, 600); }
+        if (godVisible) {
+            let godImg = godForm === 1 ? sprGod1 : sprGod2;
+            drawEntity(godImg, 300, 200, t[curLang].god.name, false, "#fff");
+        }
+    }
+    else if (room === 'CASINO_LOBBY') {
+        ctx.drawImage(bgCasinoLobby, 0, 0, 600, 600);
+        drawEntity(sprReceptionist, 300, 260, (curLang === 'en' ? "RECEPTIONIST" : "АДМІНІСТРАТОР"), false, '#fff');
+
+        // Draw a small exit arrow or text at the bottom when player is near
+        if (player.y > 500) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(curLang === 'en' ? "EXIT" : "ВИХІД", 300, 595);
+        }
+    }
+
+    else if (room === 'CASINO_GAMES') {
+        ctx.drawImage(bgCasinoGames, 0, 0, 600, 600);
+
+        // Draw Dealer 1 (Bottom Left)
+        drawEntity(sprDealer1, 220, 480, (curLang === 'en' ? "DEALER (100G)" : "ДІЛЕР (100З)"), false, '#fff');
+        // Draw Dealer 2 (Top Right)
+        drawEntity(sprDealer2, 490, 290, (curLang === 'en' ? "DEALER (200G)" : "ДІЛЕР (200З)"), false, '#fff');
+    }
+
+
+    else if (room === 'CASINO_PATH') {
+        // Choose the PNG based on current gold
+        let bg = (gold >= 500 || casinoUnlocked) ? bgCasinoOpen : bgCasinoClosed;
+        ctx.drawImage(bg, 0, 0, 600, 600);
+
+
+
+
+
+        // Draw a prompt near the door
+        if (Math.hypot(player.x - 260, player.y - 200) < 100) {
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(gold >= 500 ? (curLang === 'en' ? "ENTER" : "УВІЙТИ") : (curLang === 'en' ? "READ" : "ЧИТАТИ"), 260, 150);
+        }
+    }
+    else if (room === 'CASINO_INTERIOR') {
+        if (bgCasinoInside.complete && bgCasinoInside.naturalWidth > 0) {
+            ctx.drawImage(bgCasinoInside, 0, 0, 600, 600);
+        } else {
+            ctx.fillStyle = "#111"; // Dark red/black placeholder for casino
+            ctx.fillRect(0, 0, 600, 600);
+            ctx.fillStyle = "white";
+            ctx.fillText("Under Construction...", 300, 300);
+        }
+    }
+
+    // 3. Special Effects (Intervention/Explosion)
+    if (elionGhost) { ctx.globalAlpha = elionGhost.opacity; drawEntity(sprElion, elionGhost.x, elionGhost.y, "ELION", false, '#9b59b6'); ctx.globalAlpha = 1; }
+    if (explosionEffect) { ctx.globalAlpha = explosionEffect.alpha; if (sprExplosion.complete) ctx.drawImage(sprExplosion, explosionEffect.x - explosionEffect.size / 2, explosionEffect.y - explosionEffect.size / 2, explosionEffect.size, explosionEffect.size); ctx.globalAlpha = 1; }
+
+    if (state === 'TAROT' || state === 'TAROT_REVEAL') {
+        // Dim the background a bit to focus on table
+        ctx.fillStyle = "rgba(0,0,0,0.4)";
+        ctx.fillRect(0, 0, 600, 600);
+
+        // Draw card pile
+        tarotDeck.forEach(c => {
+            if (!c.selected) {
+                ctx.fillStyle = "#fffdf0";
+                ctx.fillRect(c.x, c.y, c.w, c.h);
+                ctx.strokeStyle = "#3d251e";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(c.x, c.y, c.w, c.h);
+                // Back design
+                ctx.fillStyle = "#ffd700";
+                ctx.beginPath(); ctx.arc(c.x + c.w / 2, c.y + c.h / 2, 8, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+
+        // Draw spread
+        selectedTarotCards.forEach((c, i) => {
+            let targetX = 100 + (i * 170);
+            let targetY = 380;
+            c.x += (targetX - c.x) * 0.15;
+            c.y += (targetY - c.y) * 0.15;
+
+            ctx.fillStyle = "#fffdf0";
+            ctx.fillRect(c.x, c.y, c.w, c.h);
+            ctx.strokeStyle = "#3d251e";
+            ctx.strokeRect(c.x, c.y, c.w, c.h);
+
+            if (state === 'TAROT_REVEAL' && tarotRevealIndex > i) {
+                // Revealed card front
+                ctx.fillStyle = c.data.color;
+                ctx.fillRect(c.x + 8, c.y + 8, c.w - 16, c.h - 45);
+                ctx.fillStyle = "#3d251e";
+                ctx.font = "bold 9px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(c.data.name, c.x + c.w / 2, c.y + c.h - 15);
+            }
+        });
+    }
+
+    // Draw Player
+    let pSkin = sprCoviello;
+    if (currentSkin === 'HAT') pSkin = sprCovielloHat;
+    if (currentSkin === 'GAMBLER') pSkin = sprCovielloGambler;
+    drawEntity(pSkin, player.x, player.y, 'COVIELLO', player.isMoving, '#4a6fa5');
+
+    // Draw Journal overlay
+    if (state === 'JOURNAL') {
+        drawJournal();
+    }
+}
+
+// --- HELPER: SPRITE RENDERER ---
+function drawEntity(img, x, y, name, walk, color) {
+    let b = walk ? Math.sin(Date.now() / 120) * 6 : 0;
+    let s = 90;
+    let shakeX = 0, shakeY = 0;
+
+    // Jesse Shaking effect
+    if (name.includes("JESSE") || name.includes("ДЖЕССІ")) {
+        shakeX = (Math.random() - 0.5) * 8;
+        shakeY = (Math.random() - 0.5) * 8;
+    }
+
+    if (!img || !img.complete || img.naturalWidth === 0) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x - 30 + shakeX, y - 30 + b + shakeY, 60, 60);
+    } else {
+        ctx.drawImage(img, x - (s / 2) + shakeX, y - (s / 2) + b + shakeY, s, s);
+    }
+    ctx.fillStyle = 'white'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
+    ctx.fillText(name, x + shakeX, y - 55 + b + shakeY);
+}
+
+
+
+function drawArrow(x, y, flip) {
+    ctx.save(); ctx.translate(x, y); if (flip) ctx.scale(-1, 1);
+    ctx.fillStyle = "#3d251e"; ctx.beginPath();
+    ctx.moveTo(-10, -15); ctx.lineTo(10, 0); ctx.lineTo(-10, 15); ctx.fill();
+    ctx.restore();
+}
+
+function wrapText(text, x, y, maxWidth, lineHeight) {
+    let words = text.split(' '), line = '';
+    for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        if (ctx.measureText(testLine).width > maxWidth) {
+            ctx.fillText(line, x, y); line = words[n] + ' '; y += lineHeight;
+        } else { line = testLine; }
+    }
+    ctx.fillText(line, x, y);
+}
+// Safe translation lookup to prevent freezing if strings.js is missing a key
+function getStr(category, key, fallback) {
+    try {
+        if (t[curLang] && t[curLang][category] && t[curLang][category][key]) {
+            return t[curLang][category][key];
+        }
+    } catch (e) { }
+    return fallback;
+}
+
+function incrementVisitors() {
+    visitorCount++;
+    document.getElementById('visit-val').innerText = visitorCount;
+}
+
+
+function toggleJournal() {
+    journalOpen = !journalOpen;
+    state = journalOpen ? 'JOURNAL' : 'WALK';
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+loop();
+
+
+
+
+
+
+
+    function handleInteraction() {
+
+
+    // 1. Radio (Bazaar)
+    if (room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100) {
+        return openRadioMenu();
+    }
+
+    // tarot
+    if (room === 'RIGHT' && Math.abs(player.x - 300) < 100 && player.y < 420) {
+        return startTarot();
+    }
+    // closet
+    if (room === 'RIGHT' && player.x > 410 && player.y < 150) {
+        return openCloset();
+    }
+    // 2. Bulletin Board (Garden) - Check this BEFORE flowers
+    if (room === 'GARDEN' && player.x < 260 && player.y < 260) {
+        state = 'DIALOGUE';
+        const box = document.getElementById('dialogue-box');
+        box.style.display = 'block';
+
+        document.getElementById('diag-name').innerText = t[curLang].misc.bulletinBoard;
+
+        // PULLS FROM t[curLang] dynamically!
+        document.getElementById('diag-text').innerText = t[curLang].rumors[currentRumorIndex].text;
+
+        document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="closeDiag()">${t[curLang].ui.alright}</button>`;
+        return;
+    }
+
+    // 3. Flower Picking (Garden)
+    if (room === 'GARDEN') {
+        let picked = false;
+        flowers = flowers.filter(f => {
+            if (!picked && Math.hypot(player.x - f.x, player.y - f.y) < 50) {
+                inventory.push("Wildflower");
+                document.getElementById('gift-val').innerText = inventory.length;
+                picked = true;
+                return false;
+            }
+            return true;
+        });
+        if (picked) return;
+    }
+
+    // 4. Customers/Visitors (Bazaar)
+    if (room === 'CENTER' && customer?.state === 'WAIT' && Math.abs(player.y - customer.y) < 150) {
+        if (customer.role === 'FORTUNE') return startFortuneMinigame();
+        if (customer.role === 'DEBT') return startDebtEncounter();
+        if (customer.role === 'KIREN') return startKirenEncounter();
+        if (customer.role === 'KIDDO') return startKiddoEncounter();
+        if (customer.role === 'JESSE') return startJesseEncounter();
+        if (customer.role === 'RAINBOW') return startRainbowEncounter();
+        if (customer.role === 'GAMBLER') return startBJ();
+        return startSale();
+    }
+
+    // 5. Elion
+    if (room === 'CENTER' && elionLocation === 'WAITING_BAZAAR') {
+        if (Math.hypot(player.x - elionX, player.y - elionY) < 100) {
+            state = 'DIALOGUE';
+            const box = document.getElementById('dialogue-box');
+            box.style.display = 'block';
+
+            document.getElementById('diag-name').innerText = t[curLang].elion.name || "ELION";
+
+            // Safe fallback text so it NEVER freezes if strings.js is missing it
+            let vacText = (t[curLang].misc && t[curLang].misc.elionVacation) ?
+                t[curLang].misc.elionVacation :
+                "'Cov, my brain is melting from all these people. You take over the tarot readings. Good luck!'";
+
+            document.getElementById('diag-text').innerText = vacText;
+            document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="elionLeavesForGood()">I'll handle it.</button>`;
+            return;
+        }
+    }
+    if (room === 'RIGHT' && elionLocation === 'ROOM_RIGHT' && Math.hypot(player.x - 500, player.y - 520) < 120) {
+        return openElionMenu();
+    }
+
+    // 6. Merchant (Shop)
+    if (room === 'LEFT' && player.y < 450 && Math.abs(player.x - 300) < 150) {
+        return openShop();
+    }
+
+    // 7. God (Void)
+    if (room === 'GOD_FIELD' && godInteractable && Math.hypot(player.x - 300, player.y - 200) < 150) {
+        return startGodDialogue();
+    }
+
+    // 8. Casino Entrance
+    if (room === 'CASINO_PATH' && player.x < 300 && player.y < 300) {
+        state = 'DIALOGUE';
+        document.getElementById('dialogue-box').style.display = 'block';
+        if (gold >= 500) { casinoUnlocked = true; }
+        document.getElementById('diag-name').innerText = (gold >= 500 || casinoUnlocked) ? "CASINO" : "DOOR SIGN";
+
+        if (gold >= 500 || casinoUnlocked) {
+            document.getElementById('diag-text').innerText = t[curLang].casino.welcome;
+            document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="enterCasino()">${t[curLang].ui.next}</button>`;
+        } else {
+            document.getElementById('diag-text').innerText = t[curLang].casino.sign;
+            document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="closeDiag()">${t[curLang].ui.alright}</button>`;
+        }
+        return;
+    }
+
+    // 9. Casino Tables
+    if (room === 'CASINO_GAMES') {
+        // Dealer 1 (Bottom Left)
+        if (Math.hypot(player.x - 220, player.y - 480) < 80) {
+            return startCasinoBJ(100, sprDealer1);
+        }
+        // Dealer 2 (Top Right)
+        if (Math.hypot(player.x - 500, player.y - 290) < 80) {
+            return startCasinoBJ(200, sprDealer2);
+        }
+    }
+
+    if (room === 'CASINO_LOBBY' && player.y < 450 && Math.abs(player.x - 300) < 100) {
+        return openCasinoShop();
+    }
+
+
+
+
+
+
+
+
+
+}
+
+
+///////////////////////
+
+
+
+function enterCasino() {
+    closeDiag();
+    room = 'CASINO_LOBBY';
+    player.x = 300;
+    player.y = 580; // Start at the very bottom edge
+}
+
+function startCasinoBJ(bet) {
+    metCharacters.add('CASINO_DEALER');
+    if (gold < bet) return alert(t[curLang].merchant.noGold);
+
+    customer = {
+        role: 'GAMBLER',
+        bet: bet,
+        isGambler: true,
+        skin: sprDealer1, sprDealer2,
+        isCasinoDealer: true
+    };
+
+    metCharacters.add('CASINO_DEALER');
+    startBJ();
+}
+
+
+
+function openRadioMenu() {
+    state = 'DIALOGUE';
+    const box = document.getElementById('dialogue-box'); box.style.display = 'block';
+    // Logic for displaying the count
+    const total = hasDeluxeRadio ? 10 : 7;
+    document.getElementById('diag-name').innerText = hasDeluxeRadio ? "DELUXE RADIO" : "OLD RADIO";
+    document.getElementById('diag-text').innerText = isMusicPlaying ?
+        `${t[curLang].radio.on} ${currentTrackIdx + 1} / ${total}` :
+        t[curLang].radio.off;
+
+    let btns = `<button class="btn" onclick="toggleMusic()">${isMusicPlaying ? t[curLang].radio.btnOff : t[curLang].radio.btnOn}</button>`;
+    btns += `<button class="btn" onclick="skipTrack()">${t[curLang].radio.btnNext}</button>`;
+    btns += `<button class="btn" style="background:#555" onclick="closeDiag()">${t[curLang].ui.leave}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+
+
+
+function startRainbowEncounter() {
+    metCharacters.add('RAINBOW');
+    state = 'DIALOGUE'; document.getElementById('dialogue-box').style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].rainbow.name;
+    document.getElementById('diag-text').innerText = t[curLang].rainbow.deck;
+    document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="startRainbowRound()">${t[curLang].ui.alright}</button><button class="btn" onclick="finishSale()">${t[curLang].ui.leave}</button>`;
+}
+function startRainbowRound() { closeDiag(); isRainbowRound = true; startBJ(); }
+
+function startJesseEncounter() {
+    metCharacters.add('JESSE');
+    state = 'DIALOGUE'; document.getElementById('dialogue-box').style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].jesse.name;
+    document.getElementById('diag-text').innerText = t[curLang].jesse.yell;
+    document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="finishSale()">${t[curLang].jesse.calm}</button>`;
+}
+
+function startKiddoEncounter() {
+    metCharacters.add('KIDDO');
+    state = 'DIALOGUE'; document.getElementById('dialogue-box').style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].kiddo.name;
+    document.getElementById('diag-text').innerText = t[curLang].kiddo.ask;
+    let hasCandy = inventory.includes("Enchanted Candy");
+    let btns = hasCandy ? `<button class="btn" onclick="giveCandy()">${t[curLang].kiddo.give}</button>` : "";
+    btns += `<button class="btn" onclick="refuseKiddo()">${t[curLang].kiddo.refuse}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+function giveCandy() { inventory.splice(inventory.indexOf("Enchanted Candy"), 1); document.getElementById('gift-val').innerText = inventory.length; document.getElementById('diag-text').innerText = t[curLang].kiddo.thanks; document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="finishSale()">${t[curLang].kiddo.skip}</button>`; }
+function refuseKiddo() { document.getElementById('diag-text').innerText = t[curLang].kiddo.meanie; document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="kiddoRunsAway()">${t[curLang].ui.back}</button>`; }
+function kiddoRunsAway() { closeDiag(); if (customer) { customer.state = 'OUT'; customer.targetX = 700; } kiddoTattling = true; }
+
+function startDebtEncounter() {
+    metCharacters.add('COLLECTOR');
+    state = 'DIALOGUE'; document.getElementById('dialogue-box').style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].collector.name;
+    document.getElementById('diag-text').innerText = t[curLang].collector.tax;
+    let btns = gold >= 100 ? `<button class="btn" onclick="payDebt()">${t[curLang].collector.pay}</button>` : `<button class="btn" disabled>...</button>`;
+    btns += `<button class="btn" onclick="triggerIntervention()">${t[curLang].collector.refuse}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+function payDebt() { gold -= 100; document.getElementById('gold-val').innerText = gold; finishSale(); }
+function triggerIntervention() { closeDiag(); state = 'INTERVENTION'; elionGhost = { x: 500, y: 520, targetX: 230, targetY: 140, opacity: 0, stage: 'TELEPORT' }; elionSat = Math.max(0, elionSat - 50); }
+
+function startSale() {
+    metCharacters.add('SHOPPER');
+    state = 'DIALOGUE'; document.getElementById('dialogue-box').style.display = 'block';
+    let bonus = (activeRumorEffect === "rich_shoppers") ? 20 : 0;
+    let profit = elionSat >= 50 ? (Math.floor(Math.random() * 11) + 15 + bonus) : (Math.floor(Math.random() * 11) + 5 + bonus);
+    gold += profit; document.getElementById('gold-val').innerText = gold;
+    document.getElementById('diag-name').innerText = t[curLang].roles.shopper;
+    const lines = t[curLang].misc.shopperLines(profit);
+    document.getElementById('diag-text').innerText = lines[Math.floor(Math.random() * lines.length)];
+    document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="finishSale()">${t[curLang].ui.thanks}</button>`;
+}
+function finishSale() { incrementVisitors(); closeDiag(); if (customer) customer.state = 'OUT'; }
+function startKirenEncounter() {
+    state = 'DIALOGUE'; document.getElementById('dialogue-box').style.display = 'block'; document.getElementById('diag-name').innerText = t[curLang].kiren.name; document.getElementById('diag-text').innerText = t[curLang].kiren.hi; document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="finishSale()">${t[curLang].kiren.bye}</button>`;
+    metCharacters.add('KIREN');
+}
+
+// GOD DIALOGUE
+function startGodDialogue() {
+
+    state = 'GOD_DIALOGUE';
+    godDialogueStep = 1;
+    document.getElementById('dialogue-box').style.display = 'block';
+    advanceGodDialogue();
+}
+
+function advanceGodDialogue() {
+    const text = document.getElementById('diag-text'), name = document.getElementById('diag-name'), btns = document.getElementById('diag-btns');
+    name.innerText = t[curLang].god.name;
+
+    if (godDialogueStep === 1) {
+        text.innerText = t[curLang].god.line1;
+        btns.innerHTML = `<button class="btn" onclick="godDialogueStep++; advanceGodDialogue()">${t[curLang].god.opt1}</button>
+                             <button class="btn" onclick="godDialogueStep++; advanceGodDialogue()">${t[curLang].god.opt2}</button>`;
+    } else if (godDialogueStep === 2) {
+        text.innerText = t[curLang].god.line2;
+        btns.innerHTML = `<button class="btn" onclick="godDialogueStep++; advanceGodDialogue()">${t[curLang].ui.next}</button>`;
+    } else if (godDialogueStep === 3) {
+        text.innerText = t[curLang].god.line3;
+        btns.innerHTML = `<button class="btn" onclick="godDialogueStep++; advanceGodDialogue()">${t[curLang].ui.next}</button>`;
+    } else if (godDialogueStep === 4) {
+        text.innerText = t[curLang].god.line4;
+        btns.innerHTML = `<button class="btn" onclick="godDialogueStep++; advanceGodDialogue()">${t[curLang].ui.next}</button>`;
+    } else if (godDialogueStep === 5) {
+        text.innerText = t[curLang].god.line5;
+        btns.innerHTML = `<button class="btn" onclick="endGodScene()">${t[curLang].ui.leave}</button>`;
+    }
+}
+
+function endGodScene() {
+    closeDiag();
+    godVisible = false;
+    godSequenceActive = false;
+    godInteractable = false;
+    state = 'WALK';
+}
+
+function triggerEnding() {
+    state = 'ENDING'; canvas.style.opacity = '0';
+    setTimeout(() => { room = 'ROMANTIC'; canvas.style.opacity = '1'; document.getElementById('ui-bar').style.display = 'none'; document.getElementById('dialogue-box').classList.add('ending-mode'); player.x = 250; player.y = 450; openEndingDialogue(); }, 1000);
+}
+let endStep = 0;
+function openEndingDialogue() { document.getElementById('dialogue-box').style.display = 'block'; advanceEnding(); }
+function advanceEnding() {
+    const text = document.getElementById('diag-text'), name = document.getElementById('diag-name'), btns = document.getElementById('diag-btns');
+    endStep++;
+    if (endStep === 1) { name.innerText = t[curLang].elion.name.split(' ')[0]; text.innerText = t[curLang].ending.e1; btns.innerHTML = `<button class="btn" onclick="advanceEnding()">${t[curLang].ui.next}</button>`; }
+    else if (endStep === 2) { name.innerText = "COVIELLO"; text.innerText = t[curLang].ending.c1; }
+    else if (endStep === 3) { name.innerText = t[curLang].elion.name.split(' ')[0]; text.innerText = t[curLang].ending.e2; }
+    else if (endStep === 4) { name.innerText = "COVIELLO"; text.innerText = t[curLang].ending.c2; }
+    else if (endStep === 5) { name.innerText = t[curLang].elion.name.split(' ')[0]; text.innerText = t[curLang].ending.e3; }
+    else if (endStep === 6) { name.innerText = "COVIELLO"; text.innerText = t[curLang].ending.c3; }
+    else if (endStep === 7) { name.innerText = t[curLang].elion.name.split(' ')[0]; text.innerText = t[curLang].ending.e4; btns.innerHTML = `<button class="btn" onclick="location.reload()">${t[curLang].ending.fin}</button>`; }
+}
+
+function openElionMenu() {
+    metCharacters.add('ELION');
+    state = 'DIALOGUE';
+    const box = document.getElementById('dialogue-box');
+    box.style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].elion.name;
+
+    // Check if Kiddo tattled on you
+    if (kiddoTattling) {
+        document.getElementById('diag-text').innerText = t[curLang].elion.angry;
+        elionSat = 0;
+        kiddoTattling = false;
+        document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="closeDiag()">${t[curLang].elion.explain}</button>`;
+        return;
+    }
+
+    // --- THIS GRABS THE RANDOM GREETING ---
+    let pool = t[curLang].misc.elionIdleLines;
+    document.getElementById('diag-text').innerText = elionSat > 0 ? pool[Math.floor(Math.random() * pool.length)] : t[curLang].misc.elionColdLine;
+
+    // --- THIS BUDS THE BUTTONS ---
+    let btns = `<button class="btn" onclick="elionChat()">${t[curLang].elion.chatBtn}</button>`;
+    btns += `<button class="btn" onclick="elionRequestGold()">${t[curLang].elion.goldBtn}</button>`;
+    if (inventory.length > 0) {
+        btns += `<button class="btn" onclick="elionGiveGift()">${t[curLang].elion.giftBtn}</button>`;
+    }
+    btns += `<button class="btn" style="background:#555" onclick="closeDiag()">${t[curLang].ui.leave}</button>`;
+
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+
+function elionChat() {
+    const chats = t[curLang].misc.elionChatLines;
+    document.getElementById('diag-text').innerText = chats[Math.floor(Math.random() * chats.length)];
+}
+
+function elionRequestGold() {
+    if (elionSat <= 0) { document.getElementById('diag-text').innerText = t[curLang].elion.noMagic; }
+    else if (gold >= 50) { document.getElementById('diag-text').innerText = t[curLang].elion.rich; }
+    else { elionSat = Math.max(0, elionSat - 30); gold += 50; document.getElementById('gold-val').innerText = gold; document.getElementById('diag-text').innerText = t[curLang].elion.giveGold; }
+}
+function elionGiveGift() {
+    if (inventory.length === 0) return;
+
+    const itemObj = inventory.shift();
+    document.getElementById('gift-val').innerText = inventory.length;
+
+
+    const itemInfo = masterItems.find(i => i.name === itemObj);
+    let rumorBonus = (activeRumorEffect === "flower_boost" && itemObj === "Wildflower") ? 5 : 0;
+    elionSat = Math.min(100, elionSat + (itemInfo ? itemInfo.sat : 5) + rumorBonus);
+    document.getElementById('diag-text').innerText = t[curLang].elion.giftResponse(itemObj);
+}
+
+function startTarot() {
+    state = 'TAROT';
+    tarotRevealIndex = 0;
+    selectedTarotCards = [];
+    tarotDeck = [];
+
+    let masterList = [...t[curLang].tarot.deck].sort(() => Math.random() - 0.5);
+
+    // Spread 15 cards horizontally at the bottom (The "Table" area)
+    for (let i = 0; i < 15; i++) {
+        tarotDeck.push({
+            x: 40 + (i * 35),
+            y: 450, // Bottom half
+            w: 60,
+            h: 90,
+            selected: false,
+            data: masterList[i % masterList.length]
+        });
+    }
+    // Hide standard UI
+    document.getElementById('interact-hint').style.display = 'none';
+}
+
+function nextTarotCard() {
+    const btns = document.getElementById('diag-btns');
+
+    if (tarotRevealIndex < 3) {
+        let card = selectedTarotCards[tarotRevealIndex];
+        let types = [t[curLang].tarot.was, t[curLang].tarot.is, t[curLang].tarot.maybe];
+
+        document.getElementById('diag-name').innerText = t[curLang].tarot.readingName;
+        document.getElementById('diag-text').innerHTML =
+            `<span style="color:var(--purple); font-size:12px; text-transform:uppercase;">${types[tarotRevealIndex]}:</span><br>` +
+            `<strong>${card.data.name}</strong><br><i>"${card.data.desc}"</i>`;
+
+        // Ensure the Next button is always there during the 3 cards
+        btns.innerHTML = `<button class="btn" onclick="nextTarotCard()">${t[curLang].ui.next}</button>`;
+
+        tarotRevealIndex++;
+    } else {
+        // Final screen: Change button to Back
+        document.getElementById('diag-text').innerText = t[curLang].tarot.end;
+        btns.innerHTML = `<button class="btn" onclick="closeDiag()">${t[curLang].ui.back}</button>`;
+    }
+}
+
+
+
+function openShop() {
+    state = 'SHOP'; document.getElementById('dialogue-box').style.display = 'block'; document.getElementById('diag-name').innerText = t[curLang].merchant.name;
+    document.getElementById('diag-text').innerText = t[curLang].misc.merchantGreeting;
+    const stock = [{ name: "Enchanted Candy", cost: 15 }, { name: "Starlight Tea", cost: 50 }, { name: "Cosmic Scarf", cost: 80 }];
+    let btns = ""; stock.forEach(item => { btns += `<button class="btn" onclick="buy('${item.name}', ${item.cost})">${t[curLang].merchant.buyBtn(item.name, item.cost)}</button>`; });
+    btns += `<button class="btn" style="background:#555" onclick="closeDiag()">${t[curLang].ui.exit}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+    metCharacters.add('MERCHANT');
+}
+function buy(name, price) { if (gold >= price) { gold -= price; inventory.push(name); document.getElementById('gold-val').innerText = gold; document.getElementById('gift-val').innerText = inventory.length; document.getElementById('diag-text').innerText = t[curLang].merchant.bought(name); } else document.getElementById('diag-text').innerText = t[curLang].merchant.noGold; }
+
+
+function closeDiag() {
+    const box = document.getElementById('dialogue-box');
+    box.style.display = 'none';
+    box.classList.remove('ending-mode');
+    state = 'WALK';
+}
+
+function openCasinoShop() {
+    metCharacters.add('RECEPTIONIST');
+    state = 'SHOP'; // Reuses shop state logic
+    const box = document.getElementById('dialogue-box');
+    box.style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].casinoShop.name;
+    document.getElementById('diag-text').innerText = t[curLang].casinoShop.welcome;
+
+    let btns = `<button class="btn" onclick="openCasinoShopClothes()">${t[curLang].ui.clothes || "Clothes"}</button>`;
+    btns += `<button class="btn" onclick="openCasinoShopItems()">${t[curLang].ui.items || "Items"}</button>`;
+    btns += `<button class="btn" style="background:#555" onclick="closeDiag()">${t[curLang].ui.exit}</button>`;
+
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+
+function openCasinoShopClothes() {
+    let btns = "";
+    if (!ownedSkins.includes('HAT')) {
+        btns += `<button class="btn" onclick="buySkin('HAT', 150)">${t[curLang].casinoShop.hatName} (150G)</button>`;
+    } else {
+        btns += `<button class="btn" disabled>${t[curLang].casinoShop.hatName} (${t[curLang].ui.alright})</button>`;
+    }
+
+    if (!ownedSkins.includes('GAMBLER')) {
+        btns += `<button class="btn" onclick="buySkin('GAMBLER', 300)">${t[curLang].casinoShop.gamblerName} (300G)</button>`;
+    } else {
+        btns += `<button class="btn" disabled>${t[curLang].casinoShop.gamblerName} (${t[curLang].ui.alright})</button>`;
+    }
+
+    btns += `<button class="btn" style="background:#555" onclick="openCasinoShop()">${t[curLang].ui.back}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+
+function openCasinoShopItems() {
+    let btns = "";
+    if (!hasDeluxeRadio) {
+        btns += `<button class="btn" onclick="buyDeluxeRadio()">${t[curLang].casinoShop.radioName} (300G)</button>`;
+    } else {
+        btns += `<button class="btn" disabled>${t[curLang].casinoShop.radioName} (${t[curLang].ui.alright})</button>`;
+    }
+    btns += `<button class="btn" style="background:#555" onclick="openCasinoShop()">${t[curLang].ui.back}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+
+function buySkin(skin, price) {
+    if (gold >= price) {
+        gold -= price;
+        ownedSkins.push(skin);
+        document.getElementById('gold-val').innerText = gold;
+        document.getElementById('diag-text').innerText = t[curLang].casinoShop.boughtSkin;
+        openCasinoShopClothes(); // Update button
+    } else {
+        document.getElementById('diag-text').innerText = t[curLang].merchant.noGold;
+    }
+}
+
+function openCloset() {
+    state = 'DIALOGUE';
+    const box = document.getElementById('dialogue-box');
+    box.style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].closet.name;
+    document.getElementById('diag-text').innerText = t[curLang].closet.desc;
+
+    let btns = "";
+    ownedSkins.forEach(skin => {
+        let skinName = t[curLang].closet[skin];
+        let bg = (currentSkin === skin) ? "#2ecc71" : "#4a6fa5";
+        btns += `<button class="btn" style="background:${bg}" onclick="equipSkin('${skin}')">${skinName}</button>`;
+    });
+
+    btns += `<button class="btn" style="background:#555" onclick="closeDiag()">${t[curLang].ui.exit}</button>`;
+    document.getElementById('diag-btns').innerHTML = btns;
+}
+
+function equipSkin(skin) {
+    currentSkin = skin;
+    openCloset();
+}
+
+function buyDeluxeRadio() {
+    if (gold >= 300) {
+        gold -= 300;
+        hasDeluxeRadio = true;
+        document.getElementById('gold-val').innerText = gold;
+        document.getElementById('diag-text').innerText = t[curLang].casinoShop.bought;
+
+        // Update the button immediately
+        openCasinoShop();
+    } else {
+        document.getElementById('diag-text').innerText = t[curLang].merchant.noGold;
+    }
+}
+// Fortune Minigame
+function startFortuneMinigame() {
+    metCharacters.add('FORTUNE');
+    fortuneActive = true;
+    state = 'FORTUNE';
+    document.getElementById('fortune-ui').style.display = 'block';
+
+    // Set UI Title from translation
+    document.querySelector('#fortune-ui h2').innerText = t[curLang].fortune.title;
+
+    // USE THE NEW MERCHANT-FOCUSED FORTUNE DECK
+    let cardPool = t[curLang].fortune.deck;
+    currentFortuneCard = cardPool[Math.floor(Math.random() * cardPool.length)];
+
+    document.getElementById('fortune-prompt').innerText = t[curLang].fortune.prompt;
+    document.getElementById('tarot-display').innerText = currentFortuneCard.name;
+
+    let fakePool = cardPool.filter(c => c.name !== currentFortuneCard.name);
+    fakePool.sort(() => Math.random() - 0.5);
+
+    let options = [
+        { text: currentFortuneCard.desc, correct: true },
+        { text: fakePool[0].desc, correct: false },
+        { text: fakePool[1].desc, correct: false }
+    ];
+    options.sort(() => Math.random() - 0.5);
+
+    let btnHtml = "";
+    options.forEach((opt, idx) => {
+        if (opt.correct) fortuneCorrectIdx = idx;
+    });
+
+    options.forEach((opt, idx) => {
+        btnHtml += `<button class="btn" style="width:100%; text-align:left;" onclick="checkFortuneAnswer(${idx}, ${opt.correct})">${opt.text}</button>`;
+    });
+
+    document.getElementById('fortune-options').innerHTML = btnHtml;
+}
+
+function checkFortuneAnswer(idx, isCorrect) {
+    document.getElementById('fortune-ui').style.display = 'none';
+    state = 'DIALOGUE';
+    const box = document.getElementById('dialogue-box'); box.style.display = 'block';
+    document.getElementById('diag-name').innerText = t[curLang].fortune.title;
+
+    if (isCorrect) {
+        let profit = elionSat >= 50 ? (Math.floor(Math.random() * 21) + 40) : (Math.floor(Math.random() * 21) + 20);
+        gold += profit;
+        document.getElementById('gold-val').innerText = gold;
+        document.getElementById('diag-text').innerText = t[curLang].fortune.success(profit);
+    } else {
+        let penalty = 20;
+        gold = Math.max(0, gold - penalty);
+        document.getElementById('gold-val').innerText = gold;
+        document.getElementById('diag-text').innerText = t[curLang].fortune.failure(penalty);
+    }
+
+    document.getElementById('diag-btns').innerHTML = `<button class="btn" onclick="finishFortuneSale()">${t[curLang].fortune.goodbye}</button>`;
+}
+
+function finishFortuneSale() {
+    incrementVisitors();
+    closeDiag();
+    if (customer) customer.state = 'OUT';
+    fortuneActive = false;
+}
+
+function elionLeavesForGood() {
+    const box = document.getElementById('dialogue-box');
+    box.style.display = 'none';
+    box.classList.remove('ending-mode');
+
+    elionLocation = 'AWAY'; // He disappears entirely
+    player.x -= 40;         // Step Coviello back so he isn't overlapping
+
+    state = 'WALK';         // Explicitly restore movement
+}
+
+
+function hit() { if (state !== 'BJ') return; pHand.push(deck.pop()); renderBJ(); if (getSum(pHand) > 21) endBJ('LOSE'); }
+function stand() { if (state !== 'BJ') return; while (getSum(dHand) < 17) dHand.push(deck.pop()); renderBJ(); let p = getSum(pHand), d = getSum(dHand); if (d > 21 || p > d) endBJ('WIN'); else if (p < d) endBJ('LOSE'); else endBJ('DRAW'); }
+function getSum(h) { let s = h.reduce((a, b) => a + b.w, 0), aces = h.filter(c => c.x === 'A').length; while (s > 21 && aces > 0) { s -= 10; aces--; } return s; }
+function startBJ() { metCharacters.add('GAMBLER'); if (gold < customer.bet) return alert(t[curLang].merchant.noGold); state = 'BJ'; document.getElementById('blackjack-ui').style.display = 'block'; pHand = []; dHand = []; deck = []; const v = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']; for (let i = 0; i < 4; i++) v.forEach(x => deck.push({ x, w: isNaN(x) ? (x === 'A' ? 11 : 10) : parseInt(x) })); deck.sort(() => Math.random() - 0.5); pHand = [deck.pop(), deck.pop()]; dHand = [deck.pop(), deck.pop()]; renderBJ(); }
+function renderBJ() {
+    const pR = document.getElementById('player-hand'), dR = document.getElementById('dealer-hand'); pR.innerHTML = ''; dR.innerHTML = '';
+    pHand.forEach(c => { const rbStyle = isRainbowRound ? 'background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%); border: 3px solid #ff00ff;' : ''; pR.innerHTML += `<div class="card" style="${rbStyle}">${c.x}</div>`; });
+    dHand.forEach((c, i) => { let h = (i === 1 && state === 'BJ' && elionSat < 75); const rbStyle = isRainbowRound ? 'background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 99%); border: 3px solid #ff00ff;' : ''; dR.innerHTML += `<div class="card" style="${h ? 'background:#333' : rbStyle}">${h ? '?' : c.x}</div>`; });
+}
+function endBJ(res) {
+    state = 'BJ_RESULT';
+    document.getElementById('bj-msg').innerText = t[curLang].bj[res.toLowerCase()];
+
+    // Casino special rule: Dealer wins on a draw (Push)
+    let result = res;
+    if (room === 'CASINO_GAMES' && res === 'DRAW') {
+        result = 'LOSE';
+        document.getElementById('bj-msg').innerText = (curLang === 'en' ? "HOUSE WINS" : "ДІЛЕР ПЕРЕМІГ");
+    }
+
+    gold += (result === 'WIN' ? customer.bet : (result === 'LOSE' ? -customer.bet : 0));
+    document.getElementById('gold-val').innerText = gold;
+
+    setTimeout(() => {
+        document.getElementById('blackjack-ui').style.display = 'none';
+        if (customer && !customer.isCasinoDealer) {
+            incrementVisitors();
+        }
+        if (room === 'CENTER') {
+            // In Bazaar: Shopper walks away
+            if (customer) customer.state = 'OUT';
+        } else {
+            // In Casino: Dealer stays put, we just clear the temporary reference
+            customer = null;
+            lastCustTime = Date.now(); // Reset the Bazaar timer so a new shopper can come
+        }
+
+        state = 'WALK';
+        isRainbowRound = false;
+    }, 1500);
+}
+
+
+
+        
 </body>
 
 </html>
