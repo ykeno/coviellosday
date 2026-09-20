@@ -1,7 +1,6 @@
 drawIcons();
 canvas.onclick = e => {
 
-    //at the VERY TOP
     if (state === 'TAROT' || state === 'TAROT_REVEAL') {
         ctx.clearRect(0, 0, 600, 600);
 
@@ -70,7 +69,7 @@ canvas.onclick = e => {
         return; // Prevent other clicks while journal is open
     }
 
-    // --- RADIO INTERACTION (Only if not in Journal) ---
+    // --- RADIO INTERACTION---
     const nearRadio = room === 'CENTER' && Math.hypot(player.x - radioPos.x, player.y - radioPos.y) < 100;
     if (nearRadio && Math.hypot(mx - radioPos.x, my - radioPos.y) < 50) {
         toggleMusic();
@@ -244,7 +243,6 @@ function checkCollision(nx, ny) {
     return false;
 }
 
-// Add this helper function just above the update() function
 function isGrass(x, y) {
     // Bulletin Board Area (Top Left)
     if (x < 220 && y < 220) return false;
@@ -256,6 +254,13 @@ function isGrass(x, y) {
 }
 
 function update() {
+
+    // --- INSTANT ENDING CHECK ---
+    if (elionSat >= 100 && state !== 'ENDING' && room !== 'ROMANTIC') {
+        triggerEnding();
+        return;
+    }
+
     if (state === 'ENDING') return;
 
     // GOD FIELD TRANSITION (15 SECONDS)
@@ -361,11 +366,11 @@ function update() {
         lastMilestoneChecked = currentMilestone;
 
         if (currentMilestone % 2 === 1) {
-            // Odd milestones (20, 60, 100...): Elion comes out to the Bazaar!
+            // Odd milestones (20, 60, 100...): Elion comes out (not in a gay way)
             elionLocation = 'WAITING_BAZAAR';
             elionX = 700;
         } else {
-            // Even milestones (40, 80, 120...): Elion returns to his room.
+            // Even milestones (40, 80, 120...): Elion returns
             elionLocation = 'ROOM_RIGHT';
         }
     }
@@ -380,7 +385,7 @@ function update() {
         let r = Math.random();
         let role = 'SHOPPER';
         let collectorChance = (activeRumorEffect === "angry_collector") ? 0.15 : 0.05;
-        // Fortune seekers only appear when Elion is AWAY (off working/hiding)
+        // Fortune seekers only appear when Elion is AWAY
         let elionLeftForVacation = (elionLocation === 'AWAY');
 
         // Clean probability ranges (0.0 to 1.0)
@@ -397,7 +402,7 @@ function update() {
         } else if (r < 0.16) {
             role = 'KIDDO';   // ~6% chance
         } else if (r < 0.70) {
-            role = 'GAMBLER'; // ~34% chance (Gamblers are back!)
+            role = 'GAMBLER'; // ~34% chance
         } else {
             role = 'SHOPPER'; // Remaining percentage
         }
@@ -508,7 +513,11 @@ function drawJournal() {
         else if (role === 'KIDDO') skin = sprKiddo;
         else if (role === 'COLLECTOR') skin = sprCollector;
         else if (role === 'SHOPPER') skin = sprCust1;
-        else if (role === 'GAMBLER') skin = sprCust2;
+        else if (role === 'GAMBLER') skin = sprCust3;
+        else if (role === 'RECEPTIONIST') skin = sprReceptionist;
+        else if (role === 'CASINO_DEALER') skin = sprDealer1;
+        else if (role === 'FORTUNE') skin = sprCust4;
+        else if (role === 'GOD') skin = sprGod1;
 
         if (skin.complete) ctx.drawImage(skin, 340, 180, 130, 130);
 
@@ -611,7 +620,7 @@ function draw() {
     if (room === 'CENTER') {
         ctx.drawImage(bgBazaar, 0, 0, 600, 600);
         // If Elion came out to complain, draw him waiting on the right side of the bazaar (x: 500, y: 300)
-        if (elionLocation === 'WAITING_BAZAAR') {
+        if (elionLocation === 'WAITING_BAZAAR' && !elionGhost) {
             let isWalking = (elionX > elionTargetX);
             drawEntity(sprElion, elionX, elionY, "ELION", isWalking, '#9b59b6');
         }
