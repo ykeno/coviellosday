@@ -145,6 +145,7 @@ function enterCasino() {
 }
 
 function startCasinoBJ(bet) {
+    metCharacters.add('CASINO_DEALER');
     if (gold < bet) return alert(t[curLang].merchant.noGold);
 
     customer = {
@@ -241,6 +242,7 @@ function startKirenEncounter() {
 
 // GOD DIALOGUE
 function startGodDialogue() {
+
     state = 'GOD_DIALOGUE';
     godDialogueStep = 1;
     document.getElementById('dialogue-box').style.display = 'block';
@@ -418,6 +420,7 @@ function closeDiag() {
 }
 
 function openCasinoShop() {
+    metCharacters.add('RECEPTIONIST');
     state = 'SHOP'; // Reuses shop state logic
     const box = document.getElementById('dialogue-box');
     box.style.display = 'block';
@@ -510,6 +513,7 @@ function buyDeluxeRadio() {
 }
 // Fortune Minigame
 function startFortuneMinigame() {
+    metCharacters.add('FORTUNE');
     fortuneActive = true;
     state = 'FORTUNE';
     document.getElementById('fortune-ui').style.display = 'block';
@@ -517,7 +521,8 @@ function startFortuneMinigame() {
     // Set UI Title from translation
     document.querySelector('#fortune-ui h2').innerText = t[curLang].fortune.title;
 
-    let cardPool = t[curLang].tarot.deck;
+    // USE THE NEW MERCHANT-FOCUSED FORTUNE DECK
+    let cardPool = t[curLang].fortune.deck;
     currentFortuneCard = cardPool[Math.floor(Math.random() * cardPool.length)];
 
     document.getElementById('fortune-prompt').innerText = t[curLang].fortune.prompt;
@@ -552,7 +557,7 @@ function checkFortuneAnswer(idx, isCorrect) {
     document.getElementById('diag-name').innerText = t[curLang].fortune.title;
 
     if (isCorrect) {
-        let profit = elionSat >= 50 ? (Math.floor(Math.random() * 11) + 15) : (Math.floor(Math.random() * 11) + 5);
+        let profit = elionSat >= 50 ? (Math.floor(Math.random() * 21) + 40) : (Math.floor(Math.random() * 21) + 20);
         gold += profit;
         document.getElementById('gold-val').innerText = gold;
         document.getElementById('diag-text').innerText = t[curLang].fortune.success(profit);
