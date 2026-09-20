@@ -227,4 +227,233 @@
     <script src="game.js"></script>
 </body>
 
+</html><!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coviello's Day</title>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --parchment: #fffdf0;
+            --border: #3d251e;
+            --purple: #9b59b6;
+            --leaf: #4a7c44;
+        }
+
+        body {
+            background: #000;
+            color: white;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #game-wrap {
+            position: relative;
+            border: 6px solid var(--border);
+            image-rendering: pixelated;
+        }
+
+        canvas {
+            display: block;
+            background: #000;
+            transition: opacity 1s;
+        }
+
+        #ui-bar {
+            width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #1a0f0c;
+            border: 4px solid var(--border);
+            border-bottom: none;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #f0e68c;
+        }
+
+        #blackjack-ui,
+
+        #dialogue-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2d1b16;
+            border: 6px solid var(--gold);
+            padding: 25px;
+            display: none;
+            pointer-events: auto;
+            text-align: center;
+            width: 400px;
+            z-index: 200;
+        }
+
+        #dialogue-box {
+            background: var(--parchment);
+            color: #222;
+            border: 6px solid var(--border);
+            width: 450px;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        #dialogue-box.ending-mode {
+            width: 500px;
+            bottom: 10px;
+            top: auto;
+            transform: translateX(-50%);
+            padding: 15px;
+            border-width: 3px;
+        }
+
+        .card-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            min-height: 80px;
+        }
+
+        .card {
+            width: 50px;
+            height: 75px;
+            background: white;
+            color: black;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            border: 3px solid #000;
+        }
+
+        .btn {
+            background: #d2691e;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom: 4px solid #8b4513;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #ff7f50;
+        }
+
+        .btn:disabled {
+            background: #555;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 80px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            pointer-events: none;
+            text-shadow: 2px 2px #000;
+            font-size: 20px;
+            color: gold;
+        }
+
+        #perks-display {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: #aaa;
+            pointer-events: none;
+        }
+
+        .lang-toggle {
+            background: #3d251e;
+            color: #ffd700;
+            border: 2px solid #ffd700;
+            cursor: pointer;
+            padding: 2px 8px;
+            font-family: inherit;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ICONS -->
+    <div id="ui-bar">
+        <div class="stat-item">
+            <canvas id="coinIcon" width="20" height="20"></canvas>
+            <span id="gold-val">100</span>
+        </div>
+        <div class="stat-item">
+            <canvas id="visitorIcon" width="20" height="20"></canvas>
+            <span id="visit-val">0</span>
+        </div>
+        <div style="font-size: 16px; color: #fff; opacity: 0.6;" id="room-name">BAZAAR</div>
+        <div class="stat-item">
+            <canvas id="giftIcon" width="20" height="20"></canvas>
+            <span id="gift-val">0</span>
+            <button class="lang-toggle" onclick="toggleLang()" style="margin-left: 15px;">EN/UA</button>
+        </div>
+    </div>
+
+    <div id="game-wrap">
+        <canvas id="gameCanvas" width="600" height="600"></canvas>
+        <div id="perks-display"></div>
+        <div id="interact-hint" class="hint">Press [E] or [Enter]</div>
+
+        <div id="blackjack-ui">
+            <h2 id="bj-msg" style="color:var(--gold); margin:0;">BLACKJACK</h2>
+            <div id="dealer-hand" class="card-row"></div>
+            <div id="player-hand" class="card-row"></div>
+            <button id="hit-btn" class="btn" onclick="hit()">HIT (H)</button>
+            <button id="stand-btn" class="btn" onclick="stand()">STAND (S)</button>
+        </div>
+
+        <div id="dialogue-box">
+            <div id="diag-name" style="color:var(--purple); font-size: 14px; margin-bottom: 5px; font-weight: bold;">
+            </div>
+            <div id="diag-text" style="font-size: 19px; font-weight: bold; min-height: 60px;"></div>
+            <div id="diag-btns"
+                style="margin-top:20px; text-align:right; border-top: 1px solid #ccc; padding-top: 10px;"></div>
+        </div>
+    </div>
+    <!-- Fortune Reading Minigame UI -->
+    <div id="fortune-ui"
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #2d1b16; border: 6px solid var(--gold); padding: 25px; display: none; pointer-events: auto; text-align: center; width: 450px; z-index: 200;">
+        <h2 style="color:var(--gold); margin:0;">FORTUNE READING</h2>
+        <p id="fortune-prompt" style="color: white; font-size: 16px;"></p>
+        <div id="tarot-display" style="font-size: 24px; color: #ffd700; margin: 15px 0; font-weight: bold;"></div>
+        <div id="fortune-options" style="display: flex; flex-direction: column; gap: 10px;"></div>
+    </div>
+
+    <script src="translations/strings.js"></script>
+    <script src="assets.js"></script>
+    <script src="events.js"></script>
+    <script src="game.js"></script>
+</body>
+
 </html>
