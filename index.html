@@ -1576,7 +1576,6 @@ function endBJ(res) {
 drawIcons();
 canvas.onclick = e => {
 
-    //at the VERY TOP
     if (state === 'TAROT' || state === 'TAROT_REVEAL') {
         ctx.clearRect(0, 0, 600, 600);
 
@@ -1970,7 +1969,7 @@ function update() {
             role = 'FORTUNE'; // 35% chance once Elion is on vacation
         } else if (r < 0.02) {
             role = 'RAINBOW'; // 2% chance
-        } else if (r < 0.92 + collectorChance) {
+        } else if (r < 0.02 + collectorChance) {
             role = 'DEBT';    // 5% (or 15% with rumor) chance
         } else if (r < 0.08) {
             role = 'KIREN';   // ~6% chance
